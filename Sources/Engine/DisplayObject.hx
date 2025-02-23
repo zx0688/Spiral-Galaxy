@@ -10,6 +10,7 @@ class DisplayObject implements IDrawable {
 	public var children: Array<DisplayObject> = [];
 	public var vertexBuffer: VertexBuffer = null;
 	public var parent: DisplayObject = null;
+	public var enable: Bool;
 
 	private var camera: Camera;
 	private var indexBuffer: IndexBuffer;
@@ -29,8 +30,9 @@ class DisplayObject implements IDrawable {
 		this.height = height;
 		this.x = x;
 		this.y = y;
+		enable = true;
 
-		mvpID = Pipeline.getInstance().pipeline.getConstantLocation("MVP");
+		mvpID = Pipeline.getInstance().state.getConstantLocation("MVP");
 		indexBuffer = Pipeline.getInstance().indexBuffer;
 	}
 
@@ -101,9 +103,16 @@ class DisplayObject implements IDrawable {
 	}
 
 	public function render(g4: kha.graphics4.Graphics): Void {
+		if (!enable)
+			return;
+
+		updateView();
+
 		g4.setMatrix(mvpID, model);
 		g4.setVertexBuffer(vertexBuffer);
 		g4.setIndexBuffer(indexBuffer);
 		g4.drawIndexedVertices(0, indexBuffer.count());
+
+		// g4.end();
 	};
 }

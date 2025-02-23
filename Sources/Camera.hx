@@ -12,11 +12,27 @@ class Camera {
 	public var projection: FastMatrix4;
 	public var view: FastMatrix4;
 
+	public var cameraUpdateEvent: Void->Void;
+
+	@:isVar public var distance(get, set): Float;
+
+	function get_distance() {
+		return this.distance;
+	}
+
+	function set_distance(value) {
+		value = value > 99 ? 99 : value;
+		value = value < 1 ? 1 : value;
+		this.distance = value;
+		view = FastMatrix4.lookAt(new FastVector3(0, 0, value), new FastVector3(0, 0, 0), new FastVector3(0, 1, 0));
+		return value;
+	}
+
 	public function new() {
 		projection = FastMatrix4.perspectiveProjection(ANGLE_PERSPECTIVE, System.windowWidth(0) / System.windowHeight(0), 0.1, MAX_DISTANCE);
 
 		// look at the scene from the top
-		view = FastMatrix4.lookAt(new FastVector3(0, 0, 99), new FastVector3(0, 0, 0), new FastVector3(0, 1, 0));
+		distance = MAX_DISTANCE - 1;
 	}
 
 	public static function ConvertGlobalPointToPerspective(_x: Float, _y: Float): Vector2 {

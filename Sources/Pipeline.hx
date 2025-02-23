@@ -31,10 +31,10 @@ class Pipeline {
 		return this.indexBuffer;
 	}
 
-	@:isVar public var pipeline(get, default): PipelineState;
+	@:isVar public var state(get, default): PipelineState;
 
-	public function get_pipeline() {
-		return this.pipeline;
+	public function get_state() {
+		return this.state;
 	}
 
 	private function new() {
@@ -42,17 +42,17 @@ class Pipeline {
 		structure.add("pos", VertexData.Float3);
 		structure.add("uv", VertexData.Float2);
 
-		pipeline = new PipelineState();
-		pipeline.inputLayout = [structure];
-		pipeline.vertexShader = Shaders.simple_vert;
-		pipeline.fragmentShader = Shaders.simple_frag;
+		state = new PipelineState();
+		state.inputLayout = [structure];
+		state.vertexShader = Shaders.simple_vert;
+		state.fragmentShader = Shaders.simple_frag;
 
-		if (pipeline.vertexShader == null || pipeline.fragmentShader == null) {
+		if (state.vertexShader == null || state.fragmentShader == null) {
 			throw new Exception("shadera are not loaded!");
 		}
-		pipeline.depthWrite = true;
-		pipeline.depthMode = CompareMode.Less;
-		pipeline.compile();
+		state.depthWrite = true;
+		state.depthMode = CompareMode.Less;
+		state.compile();
 
 		var indices: Array<Int> = [0, 1, 2, 0, 2, 3];
 		indexBuffer = new IndexBuffer(indices.length, Usage.StaticUsage);

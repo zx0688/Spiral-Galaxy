@@ -10,7 +10,7 @@ class ImageObject extends DisplayObject implements IDrawable {
 	private var textureID: TextureUnit;
 
 	public function new(x: Float, y: Float, width: Float, height: Float, image: Image, camera: Camera) {
-		textureID = Pipeline.getInstance().pipeline.getTextureUnit("myTextureSampler");
+		textureID = Pipeline.getInstance().state.getTextureUnit("myTextureSampler");
 		this.image = image;
 		super(x, y, width, height, camera);
 	}
@@ -18,6 +18,9 @@ class ImageObject extends DisplayObject implements IDrawable {
 	override public function render(g4: kha.graphics4.Graphics): Void {
 		for (child in children)
 			child.render(g4);
+
+		if (!enable)
+			return;
 
 		g4.setTexture(textureID, image);
 		super.render(g4);

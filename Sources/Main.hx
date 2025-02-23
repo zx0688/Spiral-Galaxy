@@ -158,17 +158,16 @@ class Empty {
 
 	var started = false;
 
-	var comp: ImageRender = null;
 	var sphereMesh = null;
 	var runTime: Float = 0;
 	var io: ImageObject;
 	var io2: ImageObject;
 
+	var space: Scene;
+
 	public function new() {
 		// Load all assets defined in khafile.js
 		Assets.loadEverything(loadingFinished);
-
-		comp = new ImageRender("dfdf");
 	}
 
 	function loadingFinished() {
@@ -287,51 +286,27 @@ class Empty {
 		Scheduler.addTimeTask(update, 0, 1 / 60);
 
 		Pipeline.getInstance();
-		var camera = new Camera();
 
-		io = new ImageObject(0, 0, 640, 480, image, camera);
-		io2 = new ImageObject(0, 0, 100, 100, image2, camera);
-		io.addChild(io2);
+		space = new Scene().init();
 
 		started = true;
 	}
 
 	public function render(frame: Framebuffer) {
-		var g = frame.g4;
-		g.begin();
+		var g4 = frame.g4;
+		g4.begin();
 		if (started) {
-			// Clear screen
-			g.clear(Color.Black, 1.0);
-			g.setPipeline(Pipeline.getInstance().pipeline);
-			// io2.render(g);
-			io.render(g);
-
-			// g.setPipeline(pipeline);
-
-			/*g.setTexture(textureID, image);
-				g.setMatrix(mvpID, mvp);
-
-				g.setVertexBuffer(vertexBuffer);
-				g.setIndexBuffer(indexBuffer);
-				//
-				g.drawIndexedVertices(0, indexBuffer.count()); */
-
-			//
-			// 			g.setMatrix(mvpID, mvp2);
-			// 			g.setTexture(textureID, image2);
-			// 			// g.setTexture(textureID, image);
-			//
-			// 			// g.setVertexBuffer(vertexBuffer);
-			// 			// g.setIndexBuffer(indexBuffer);
-			//
-			// 			g.drawIndexedVertices(0, indices.length);
+			g4.clear(Color.Black, 1.0);
+			g4.setPipeline(Pipeline.getInstance().state);
+			space.render(g4);
 		}
-		g.end();
+		g4.end();
 	}
 
 	public function update() {
 		// Compute time difference between current and last frame
 
+		return;
 		var currentTime = Scheduler.time();
 		var deltaTime = currentTime - lastTime;
 		runTime += deltaTime;
