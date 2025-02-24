@@ -1,6 +1,16 @@
 {
 	"files": [
 		{
+			"name": "RussoOne_Regular",
+			"files": [
+				"RussoOne_Regular.ttf"
+			],
+			"file_sizes": [
+				37292
+			],
+			"type": "font"
+		},
+		{
 			"name": "painter_colored_frag",
 			"files": [
 				"painter-colored.frag.essl",
@@ -380,6 +390,146 @@
 			"uniforms": [
 				{
 					"name": "projectionMatrix",
+					"type": "mat4"
+				}
+			],
+			"types": [
+				{
+					"name": "gl_PerVertex",
+					"members": [
+						{
+							"type": "vec4",
+							"name": "gl_Position"
+						},
+						{
+							"type": "float",
+							"name": "gl_PointSize"
+						},
+						{
+							"type": "float[]",
+							"name": "gl_ClipDistance"
+						},
+						{
+							"type": "float[]",
+							"name": "gl_CullDistance"
+						}
+					]
+				}
+			]
+		},
+		{
+			"name": "settings_json",
+			"files": [
+				"settings.json"
+			],
+			"file_sizes": [
+				66
+			],
+			"type": "blob"
+		},
+		{
+			"name": "simple",
+			"files": [
+				"simple.jpg"
+			],
+			"file_sizes": [
+				715780
+			],
+			"type": "image",
+			"original_width": 675,
+			"original_height": 660
+		},
+		{
+			"name": "simple2",
+			"files": [
+				"simple2.png"
+			],
+			"file_sizes": [
+				1806
+			],
+			"type": "image",
+			"original_width": 152,
+			"original_height": 145
+		},
+		{
+			"name": "simple3",
+			"files": [
+				"simple3.png"
+			],
+			"file_sizes": [
+				47109
+			],
+			"type": "image",
+			"original_width": 167,
+			"original_height": 166
+		},
+		{
+			"name": "simple_frag",
+			"files": [
+				"simple.frag.essl",
+				"simple-webgl2.frag.essl"
+			],
+			"file_sizes": [
+				1
+			],
+			"type": "shader",
+			"inputs": [
+				{
+					"name": "vUV",
+					"type": "vec2"
+				}
+			],
+			"outputs": [
+				{
+					"name": "fragColor",
+					"type": "vec4"
+				}
+			],
+			"uniforms": [
+				{
+					"name": "myTextureSampler",
+					"type": "sampler2D"
+				}
+			],
+			"types": []
+		},
+		{
+			"name": "simple_vert",
+			"files": [
+				"simple.vert.essl",
+				"simple-webgl2.vert.essl"
+			],
+			"file_sizes": [
+				1
+			],
+			"type": "shader",
+			"inputs": [
+				{
+					"name": "pos",
+					"type": "vec3"
+				},
+				{
+					"name": "uv",
+					"type": "vec2"
+				},
+				{
+					"name": "gl_VertexID",
+					"type": "int"
+				},
+				{
+					"name": "gl_InstanceID",
+					"type": "int"
+				}
+			],
+			"outputs": [
+				{
+					"name": "vUV",
+					"type": "vec2"
+				}
+			],
+			"uniforms": [
+				{
+					"name": "MVP",
 					"type": "mat4"
 				}
 			],

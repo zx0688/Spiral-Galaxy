@@ -1,0 +1,7 @@
+#automatically generated do not edit
+#@date Mon Feb 24 2025 03:50:31 GMT+0300 (Москва, стандартное время)
+-cp /Users/home/Projects/Git/VolkaTestTask/src/
+-main Main
+-js bin/js/main.js
+-D no-deprecation-warnings
+-cp /var/folders/6y/wthr5xtd4v55glc1y521gqc80000gn/T/0ca0d44dce6b8f95b3045fc1fdaf8aface62f334

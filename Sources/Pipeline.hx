@@ -10,15 +10,6 @@ import kha.graphics4.IndexBuffer;
 import kha.graphics4.PipelineState;
 
 class Pipeline {
-	private static var instance: Pipeline;
-
-	public static function getInstance(): Pipeline {
-		if (instance == null) {
-			instance = new Pipeline();
-		}
-		return instance;
-	}
-
 	@:isVar public var structure(get, default): VertexStructure;
 
 	public function get_structure() {
@@ -37,7 +28,7 @@ class Pipeline {
 		return this.state;
 	}
 
-	private function new() {
+	public function new() {
 		structure = new VertexStructure();
 		structure.add("pos", VertexData.Float3);
 		structure.add("uv", VertexData.Float2);

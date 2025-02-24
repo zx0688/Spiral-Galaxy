@@ -1,5 +1,5 @@
 package engine;
 
 interface IUpdatable {
-	public function update(deltaTime: Float): Void;
+	public function update(currentTime: Float): Void;
 }

@@ -6,8 +6,8 @@
 		<movie input="" />
 		<movie path="debug-html5/kha.js" />
 		<movie fps="30" />
-		<movie width="800" />
-		<movie height="600" />
+		<movie width="1920" />
+		<movie height="1080" />
 		<movie version="16" />
 		<movie minorVersion="0" />
 		<movie platform="JavaScript" />

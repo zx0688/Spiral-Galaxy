@@ -1,0 +1,19 @@
+#version 300 es
+precision mediump float;
+precision highp int;
+
+uniform highp sampler2D myTextureSampler;
+
+in highp vec2 vUV;
+out highp vec4 fragColor;
+
+void main()
+{
+    highp vec4 color = texture(myTextureSampler, vUV);
+    if (color.w < 0.100000001490116119384765625)
+    {
+        discard;
+    }
+    fragColor = color;
+}
+

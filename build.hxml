@@ -1,0 +1,4 @@
+-cp src
+-main Main
+-js bin/js/main.js
+-D no-deprecation-warnings

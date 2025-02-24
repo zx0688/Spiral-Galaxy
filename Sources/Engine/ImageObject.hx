@@ -9,20 +9,32 @@ class ImageObject extends DisplayObject implements IDrawable {
 	private var image: Image;
 	private var textureID: TextureUnit;
 
-	public function new(x: Float, y: Float, width: Float, height: Float, image: Image, camera: Camera) {
-		textureID = Pipeline.getInstance().state.getTextureUnit("myTextureSampler");
-		this.image = image;
-		super(x, y, width, height, camera);
+	public function new(x: Float, y: Float, width: Float, height: Float, image: Image, camera: Camera, pipeline: Pipeline) {
+		textureID = pipeline.state.getTextureUnit("myTextureSampler");
+		this.image = image; // DynamicImageResizer.scaleImage(image, 1);
+		super(x, y, width, height, camera, pipeline);
 	}
 
 	override public function render(g4: kha.graphics4.Graphics): Void {
+		if (!isActive)
+			return;
+
 		for (child in children)
 			child.render(g4);
 
-		if (!enable)
+		if (!isVisible)
 			return;
 
 		g4.setTexture(textureID, image);
-		super.render(g4);
+		g4.setMatrix(mvpID, model);
+		g4.setVertexBuffer(vertexBuffer);
+		g4.setIndexBuffer(indexBuffer);
+		g4.drawIndexedVertices(0, indexBuffer.count());
 	};
+
+	public function resizeImage() {}
+
+	override public function update(currentTime: Float): Void {
+		super.update(currentTime);
+	}
 }
