@@ -1,3 +1,8 @@
+import kha.WindowOptions;
+import kha.WindowMode;
+import kha.Window;
+import utils.DynamicImageFactory;
+import engine.BatchRender;
 import haxe.Json;
 import ui.UI;
 import kha.System;
@@ -7,6 +12,15 @@ import kha.Assets;
 import kha.Scheduler;
 import kha.Image;
 import kha.math.Random;
+#if kha_html5
+import js.Browser.document;
+import js.Browser.window;
+import js.html.CanvasElement;
+import kha.Macros;
+import js.html.FileReader;
+import js.html.DragEvent;
+import js.Browser;
+#end
 
 class Main {
 	public static var random: Random;
@@ -16,12 +30,19 @@ class Main {
 	static var preloader: Preloader;
 	static var settings: Dynamic;
 	static var backbuffer: Image;
+	static var batchRender: BatchRender;
 	static var fps: Int = 0;
-
 	static var ui: UI;
 
 	public static function main() {
-		System.start({title: "Spiral Galaxy", width: 1040, height: 680}, function loadAssets(_) {
+		System.start({
+			title: "Spiral Galaxy",
+			width: 2560,
+			height: 1440,
+			window: {
+				mode: WindowMode.Fullscreen
+			}
+		}, function loadAssets(_) {
 			pipeline = new Pipeline();
 			preloader = new Preloader(pipeline).start(init);
 		});
@@ -31,14 +52,26 @@ class Main {
 		settings = Json.parse(Reflect.field(Assets.blobs, "settings_json").toString());
 		random = new Random(Reflect.field(settings, "seed"));
 
+		DynamicImageFactory.init();
 		space = new Scene(pipeline, settings).init();
 		ui = new UI(space, settings);
+		batchRender = new BatchRender();
 
 		Scheduler.addTimeTask(update, 0, 1 / 30);
 		System.notifyOnFrames(render);
+
+		#if kha_html5
+		window.onresize = function() {
+			Main.resize();
+		}
+		#end
 	}
 
-	static public function update() {
+	static function resize() {
+		space.resize();
+	}
+
+	static function update() {
 		space.update(Scheduler.time());
 	}
 
@@ -48,8 +81,10 @@ class Main {
 		g4.begin();
 		g4.clear(Color.Black);
 		g4.setPipeline(pipeline.state);
-		preloader.render(g4);
-		space.render(g4);
+
+		preloader.render(g4, batchRender);
+		space.render(g4, batchRender);
+		batchRender.render(g4);
 		g4.end();
 
 		// ui

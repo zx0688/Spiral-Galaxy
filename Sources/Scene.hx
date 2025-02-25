@@ -6,7 +6,6 @@ import kha.input.KeyCode;
 import kha.Assets;
 import kha.System;
 import engine.ImageObject;
-import engine.DynamicImageResizer;
 import utils.GalaxyFactory;
 
 class Scene extends ImageObject {
@@ -14,7 +13,7 @@ class Scene extends ImageObject {
 	// smooth changind
 	public var targetPosition: FastVector2;
 	public var targetDistance: Float;
-	public var lerpSpeed: Float = 0.2;
+	public var lerpSpeed: Float = 0.12;
 
 	// mouse drag and drop
 	var isMouseDown: Bool;
@@ -22,8 +21,8 @@ class Scene extends ImageObject {
 	var mouseY = 0.0;
 	var mouseDeltaX = 0.0;
 	var mouseDeltaY = 0.0;
-	var mouseSpeed = 4;
-	var mouseWheel: Float = 5;
+	var mouseSpeed: Float = 4;
+	var mouseWheel: Float = 4;
 
 	// keyboard
 	var up: Bool;
@@ -40,7 +39,7 @@ class Scene extends ImageObject {
 		this.settings = settings;
 
 		var camera = new Camera();
-		var space = Assets.images.simple;
+		var space = Assets.images.galaxy;
 
 		super(0, 0, System.windowWidth(0), System.windowHeight(0), space, camera, pipeline);
 
@@ -53,35 +52,21 @@ class Scene extends ImageObject {
 		targetPosition = new FastVector2(camera.position.x, camera.position.y);
 		lastCameraDistance = camera.distance;
 
-		generateNewStars(20000); // Reflect.field(settings, "starCount"));
+		generateNewStars(Reflect.field(settings, "starCount"));
 
-		Scheduler.addTimeTask(updateTextureImage, 0, 1 / 5);
 		return this;
 	}
 
-	// upscale images TODO
-	private function updateTextureImage() {
-		if (lastCameraDistance != camera.distance) {
-			DynamicImageResizer.resizeTextures(camera.distance);
-
-			for (child in children)
-				if (Std.is(child, ImageObject)) {
-					cast(child, ImageObject).resizeImage();
-				}
-		}
-	}
-
 	public function generateNewStars(count: Int): Void {
-		// var newStar = new Star(0, 0, 50, 10, camera, pipeline);
-		// addChild(newStar);
-		// return;
-		var newStars = GalaxyFactory.generateNewSpiralStar(count, 1000, cast Reflect.field(settings, "typeStars"), camera, pipeline);
+		var newStars = GalaxyFactory.generateNewSpiralStar(count, 1000, cast Reflect.field(settings, "typeStars"), camera, pipeline, settings);
 		for (star in newStars) {
 			addChild(star);
 		}
 	}
 
 	override public function update(currentTime: Float) {
+		mouseSpeed = Camera.ConvertPointByPerspective(4, 0, Camera.MAX_DISTANCE, camera.distance).x;
+
 		// update camera position
 		var position = camera.position;
 
@@ -119,6 +104,11 @@ class Scene extends ImageObject {
 		mouseDeltaY = 0;
 
 		super.update(currentTime);
+	}
+
+	override function resize() {
+		camera.resize();
+		super.resize();
 	}
 
 	function onKeyDown(key: Int) {

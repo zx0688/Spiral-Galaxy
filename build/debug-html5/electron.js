@@ -43,7 +43,7 @@ app.on('window-all-closed', function () {
 
 app.on('ready', function () {
 	mainWindow = new BrowserWindow({
-		width: 1920, height: 1080,
+		width: 2560, height: 1440,
 		show: false, useContentSize: true, autoHideMenuBar: true,
 		icon: app.getAppPath() + '/favicon' + '.png',
 		webPreferences: {

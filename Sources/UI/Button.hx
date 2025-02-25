@@ -39,8 +39,8 @@ class Button {
 		if (text != null) {
 			g.color = Color.Blue;
 			g.font = Assets.fonts.RussoOne_Regular;
-			g.fontSize = 20;
-			g.drawString(this.text, this.x + 3, this.y + 3);
+			g.fontSize = 30;
+			g.drawString(this.text, this.x + 1, this.y + 1);
 		}
 	}
 

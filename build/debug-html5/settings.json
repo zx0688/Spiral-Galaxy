@@ -1,5 +1,5 @@
 {
-    "starCount": 1,
-    "seed": 100,
-    "typeStars":[0, 1, 2]
+    "starCount": 1000,
+    "seed": 1740442317,
+    "availableTypes":["red_gigant", "blue_gigant", "white_dwarf", "brown_dwarf"]
 }

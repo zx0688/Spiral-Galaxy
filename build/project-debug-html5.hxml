@@ -1,5 +1,5 @@
--cp /Users/home/.vscode/extensions/kodetech.kha-24.7.0/Kha/Sources
--cp /Users/home/.vscode/extensions/kodetech.kha-24.7.0/Kha/Backends/HTML5
+-cp /Users/home/Projects/Git/VolkaTestTask/Kha/Sources
+-cp /Users/home/Projects/Git/VolkaTestTask/Kha/Backends/HTML5
 -cp /Users/home/Projects/Git/VolkaTestTask/Sources
 -D hxcpp_smart_strings
 -D sys_g1
@@ -13,6 +13,7 @@
 -D kha_g3
 -D kha_a1
 -D kha_a2
+-D kha_disable_context_menu
 -D canvas_id=khanvas
 -D script_name=kha
 -D sys_g4
@@ -28,7 +29,7 @@
 -D kha_debug_html5
 -D kha
 -D kha_version=1810
--D kha_project_name=VolkaTest
+-D kha_project_name=SpiralGalaxy
 -js debug-html5/kha.js
 -debug
 -main Main

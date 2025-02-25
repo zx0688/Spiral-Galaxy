@@ -11,6 +11,66 @@
 			"type": "font"
 		},
 		{
+			"name": "blue_gigant_high",
+			"files": [
+				"blue_gigant_high.png"
+			],
+			"file_sizes": [
+				36820
+			],
+			"type": "image",
+			"original_width": 152,
+			"original_height": 145
+		},
+		{
+			"name": "blue_gigant_low",
+			"files": [
+				"blue_gigant_low.png"
+			],
+			"file_sizes": [
+				1839
+			],
+			"type": "image",
+			"original_width": 25,
+			"original_height": 24
+		},
+		{
+			"name": "brown_dwarf_high",
+			"files": [
+				"brown_dwarf_high.png"
+			],
+			"file_sizes": [
+				25795
+			],
+			"type": "image",
+			"original_width": 119,
+			"original_height": 119
+		},
+		{
+			"name": "brown_dwarf_low",
+			"files": [
+				"brown_dwarf_low.png"
+			],
+			"file_sizes": [
+				1932
+			],
+			"type": "image",
+			"original_width": 25,
+			"original_height": 25
+		},
+		{
+			"name": "galaxy",
+			"files": [
+				"galaxy.jpg"
+			],
+			"file_sizes": [
+				715780
+			],
+			"type": "image",
+			"original_width": 2540,
+			"original_height": 2160
+		},
+		{
 			"name": "painter_colored_frag",
 			"files": [
 				"painter-colored.frag.essl",
@@ -418,50 +478,38 @@
 			]
 		},
 		{
+			"name": "red_gigant_high",
+			"files": [
+				"red_gigant_high.png"
+			],
+			"file_sizes": [
+				58587
+			],
+			"type": "image",
+			"original_width": 196,
+			"original_height": 192
+		},
+		{
+			"name": "red_gigant_low",
+			"files": [
+				"red_gigant_low.png"
+			],
+			"file_sizes": [
+				1772
+			],
+			"type": "image",
+			"original_width": 25,
+			"original_height": 24
+		},
+		{
 			"name": "settings_json",
 			"files": [
 				"settings.json"
 			],
 			"file_sizes": [
-				66
+				131
 			],
 			"type": "blob"
-		},
-		{
-			"name": "simple",
-			"files": [
-				"simple.jpg"
-			],
-			"file_sizes": [
-				715780
-			],
-			"type": "image",
-			"original_width": 675,
-			"original_height": 660
-		},
-		{
-			"name": "simple2",
-			"files": [
-				"simple2.png"
-			],
-			"file_sizes": [
-				1806
-			],
-			"type": "image",
-			"original_width": 152,
-			"original_height": 145
-		},
-		{
-			"name": "simple3",
-			"files": [
-				"simple3.png"
-			],
-			"file_sizes": [
-				47109
-			],
-			"type": "image",
-			"original_width": 167,
-			"original_height": 166
 		},
 		{
 			"name": "simple_frag",
@@ -556,6 +604,30 @@
 					]
 				}
 			]
+		},
+		{
+			"name": "white_dwarf_high",
+			"files": [
+				"white_dwarf_high.png"
+			],
+			"file_sizes": [
+				10659
+			],
+			"type": "image",
+			"original_width": 102,
+			"original_height": 105
+		},
+		{
+			"name": "white_dwarf_low",
+			"files": [
+				"white_dwarf_low.png"
+			],
+			"file_sizes": [
+				1502
+			],
+			"type": "image",
+			"original_width": 25,
+			"original_height": 26
 		}
 	]
 }

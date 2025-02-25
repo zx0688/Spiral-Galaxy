@@ -1,0 +1,14 @@
+#version 100
+
+uniform mediump mat4 MVP;
+
+attribute mediump vec3 pos;
+varying mediump vec2 vUV;
+attribute mediump vec2 uv;
+
+void main()
+{
+    gl_Position = MVP * vec4(pos, 1.0);
+    vUV = uv;
+}
+

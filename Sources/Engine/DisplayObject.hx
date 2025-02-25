@@ -6,8 +6,9 @@ import kha.math.FastMatrix4;
 import kha.graphics4.VertexBuffer;
 import kha.graphics4.IndexBuffer;
 import kha.graphics4.Usage;
+import kha.math.FastVector3;
 
-class DisplayObject implements IDrawable implements IUpdatable {
+class DisplayObject implements IDrawable implements IUpdatable implements IResizable {
 	public var children: Array<DisplayObject> = [];
 	public var vertexBuffer: VertexBuffer = null;
 	public var parent: DisplayObject = null;
@@ -27,6 +28,7 @@ class DisplayObject implements IDrawable implements IUpdatable {
 	@:isVar public var z(get, set): Float = 0;
 
 	public function new(x: Float, y: Float, width: Float, height: Float, camera: Camera, pipeline: Pipeline) {
+		model = FastMatrix4.identity();
 		this.pipeline = pipeline;
 		this.camera = camera;
 		this.width = width;
@@ -119,12 +121,12 @@ class DisplayObject implements IDrawable implements IUpdatable {
 		return object;
 	}
 
-	public function render(g4: kha.graphics4.Graphics): Void {
+	public function render(g4: kha.graphics4.Graphics, batch: BatchRender): Void {
 		if (!isActive)
 			return;
 
 		for (child in children)
-			child.render(g4);
+			child.render(g4, batch);
 
 		if (!isVisible)
 			return;
@@ -136,16 +138,27 @@ class DisplayObject implements IDrawable implements IUpdatable {
 	};
 
 	public function update(currentTime: Float): Void {
-		updateView();
+		for (child in children)
+			child.update(currentTime);
 
-		var rect: FastVector4 = camera.rect;
+		var rect: FastVector4 = camera.scope;
 
+		// frustum culling
 		isVisible = !(this.x + this.width <= rect.x - rect.z
 			|| this.x - this.width >= rect.x + rect.z
 			|| this.y + this.height <= rect.y - rect.w
 			|| this.y - this.height >= rect.y + rect.w);
 
+		if (isVisible) {
+			updateView();
+		}
+	}
+
+	public function resize(): Void {
 		for (child in children)
-			child.update(currentTime);
+			child.resize();
+
+		updateView();
+		updateVertexBuffer();
 	}
 }

@@ -1,22 +1,21 @@
 package;
 
+import engine.IResizable;
 import kha.math.FastVector4;
-import kha.math.Vector4;
-import haxe.ds.Vector;
 import kha.math.FastVector3;
 import kha.math.FastMatrix4;
 import kha.System;
 import kha.math.Vector2;
 
-class Camera {
+class Camera implements IResizable {
 	public static inline var MAX_DISTANCE: Int = 100;
 	public static inline var ANGLE_PERSPECTIVE: Float = 45.0;
 
 	public var projection: FastMatrix4;
 	public var view: FastMatrix4;
-	public var rect: FastVector4;
 
-	public var cameraUpdateEvent: Void->Void;
+	// scope of view x, y, width, height
+	public var scope: FastVector4;
 
 	@:isVar public var position(get, set): Vector2 = new Vector2(0, 0);
 
@@ -25,9 +24,9 @@ class Camera {
 	}
 
 	function set_position(value) {
-		view = FastMatrix4.lookAt(new FastVector3(value.x, value.y, distance), new FastVector3(value.x, value.y, 0), new FastVector3(0, 1, 0));
 		this.position = value;
-		rectUpdate();
+		updateView();
+		scopeUpdate();
 		return value;
 	}
 
@@ -38,34 +37,45 @@ class Camera {
 	}
 
 	function set_distance(value) {
-		// if (value == this.distance)
-		//		return value;
+		if (value == this.distance)
+			return value;
+
 		value = value > 99 ? 99 : value;
 		value = value < 1 ? 1 : value;
 		this.distance = value;
-		view = FastMatrix4.lookAt(new FastVector3(this.position.x, this.position.y, value), new FastVector3(this.position.x, this.position.y, 0),
-			new FastVector3(0, 1, 0));
-		rectUpdate();
+		updateView();
+		scopeUpdate();
 		return value;
 	}
 
-	function rectUpdate() {
-		var size = ConvertPointByPerspective(System.windowWidth(0), System.windowHeight(0), 100, this.distance);
-		var position = ConvertPerspectivePointToGlovalPoint(this.position.x, this.position.y, 100);
+	function updateView() {
+		view = FastMatrix4.lookAt(new FastVector3(this.position.x, this.position.y, this.distance), new FastVector3(this.position.x, this.position.y, 0),
+			new FastVector3(0, 1, 0));
+	}
 
-		rect.x = position.x;
-		rect.y = position.y;
-		rect.z = size.x;
-		rect.w = size.y;
+	// for frustum culling
+	function scopeUpdate() {
+		var size = ConvertPointByPerspective(System.windowWidth(0), System.windowHeight(0), MAX_DISTANCE, this.distance);
+		var position = ConvertPerspectivePointToGlovalPoint(this.position.x, this.position.y, MAX_DISTANCE);
+
+		scope.x = position.x;
+		scope.y = position.y;
+		scope.z = size.x;
+		scope.w = size.y;
 	}
 
 	public function new() {
-		rect = new FastVector4(0, 0, 0, 0);
+		scope = new FastVector4(0, 0, 0, 0);
 		projection = FastMatrix4.perspectiveProjection(ANGLE_PERSPECTIVE, System.windowWidth(0) / System.windowHeight(0), 0.1, MAX_DISTANCE);
 
 		// look at the scene from the top
 		distance = MAX_DISTANCE - 1;
 		position = new Vector2(0, 0);
+	}
+
+	public function resize() {
+		projection = FastMatrix4.perspectiveProjection(ANGLE_PERSPECTIVE, System.windowWidth(0) / System.windowHeight(0), 0.1, MAX_DISTANCE);
+		updateView();
 	}
 
 	public static function ConvertPointByPerspective(_x: Float, _y: Float, _distance1: Float, _distance2: Float): Vector2 {
@@ -94,8 +104,9 @@ class Camera {
 		var pos = ConvertGlobalPointToPerspectivePoint(_width, _height);
 		var height = pos.y;
 		var width = pos.x;
+
 		var vertices: Array<Float> = [
-			-width, -height, 0.0, 0.0, 1.0, width, -height, 0.0, 1.0, 1.0, width, height, 0.0, 1.0, 0.0, -width, height, 0.0, 0.0, 0.0
+			-width, -height, 0.0, 0.0, 1.0, width, -height, 0.0, 1.0, 1.0, width, height, 0.0, 1.0, 0.0, -width, height, 0.0, 0.0, 0.0, 0.0
 		];
 		return vertices;
 	}
