@@ -36,7 +36,7 @@ class BatchRender {
 
 	public function render(g4: kha.graphics4.Graphics): Void {
 		// still not working
-		// return;
+		return;
 
 		// Instanced rendering
 		if (!g4.instancedRenderingAvailable())
