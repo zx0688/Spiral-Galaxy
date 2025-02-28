@@ -371,9 +371,10 @@ Main.init = function() {
 	Main.settings = JSON.parse(Reflect.field(kha_Assets.blobs,"settings_json").toString());
 	Main.random = new kha_math_Random(Reflect.field(Main.settings,"seed"));
 	utils_DynamicImageFactory.init();
-	Main.space = new Scene(Main.pipeline,Main.settings).init();
+	var camera = new Camera();
+	Main.space = new Scene(Main.pipeline,Main.settings,camera).init();
 	Main.ui = new ui_UI(Main.space,Main.settings);
-	Main.batchRender = new engine_BatchRender();
+	Main.batchRender = new engine_BatchRender(Main.pipeline,camera);
 	kha_Scheduler.addTimeTask(Main.update,0,0.0333333333333333329);
 	kha_System.notifyOnFrames(Main.render);
 	window.onresize = function() {
@@ -738,7 +739,7 @@ engine_ImageObject.prototype = $extend(engine_DisplayObject.prototype,{
 	}
 	,__class__: engine_ImageObject
 });
-var Scene = function(pipeline,settings) {
+var Scene = function(pipeline,settings,camera) {
 	this.keyboardSpeed = 2;
 	this.mouseWheel = 4;
 	this.mouseSpeed = 4;
@@ -748,7 +749,7 @@ var Scene = function(pipeline,settings) {
 	this.mouseX = 0.0;
 	this.lerpSpeed = 0.12;
 	this.settings = settings;
-	var camera = new Camera();
+	this.camera = camera;
 	var space = kha_Assets.images.galaxy;
 	engine_ImageObject.call(this,0,0,kha_System.windowWidth(0),kha_System.windowHeight(0),space,camera,pipeline);
 	kha_input_Mouse.get().notify($bind(this,this.onMouseDown),$bind(this,this.onMouseUp),$bind(this,this.onMouseMove),$bind(this,this.onMouseWheel));
@@ -885,11 +886,12 @@ Scene.prototype = $extend(engine_ImageObject.prototype,{
 	}
 	,__class__: Scene
 });
-var Star = function(x,y,radius,mass,type,camera,pipeline) {
+var Star = function(x,y,rotation,radius,mass,type,camera,pipeline) {
 	this.mass = mass;
 	this.type = type;
 	this.image = utils_DynamicImageFactory.getTexture(type,camera.get_distance(),null);
 	engine_ImageObject.call(this,x,y,radius,radius,this.image,camera,pipeline);
+	this.set_rotation(rotation);
 };
 $hxClasses["Star"] = Star;
 Star.__name__ = true;
@@ -897,11 +899,45 @@ Star.__super__ = engine_ImageObject;
 Star.prototype = $extend(engine_ImageObject.prototype,{
 	mass: null
 	,type: null
+	,rotation: null
+	,get_rotation: function() {
+		return this.rotation;
+	}
+	,set_rotation: function(v) {
+		this.rotation = v;
+		this.updateView();
+		return v;
+	}
+	,updateView: function() {
+		engine_ImageObject.prototype.updateView.call(this);
+		var _this = this.model;
+		var alpha = this.get_rotation();
+		var ca = Math.cos(alpha);
+		var sa = Math.sin(alpha);
+		var m__00 = ca;
+		var m__10 = -sa;
+		var m__20 = 0;
+		var m__30 = 0;
+		var m__01 = sa;
+		var m__11 = ca;
+		var m__21 = 0;
+		var m__31 = 0;
+		var m__02 = 0;
+		var m__12 = 0;
+		var m__22 = 1;
+		var m__32 = 0;
+		var m__03 = 0;
+		var m__13 = 0;
+		var m__23 = 0;
+		var m__33 = 1;
+		this.model = new kha_math_FastMatrix4(_this._00 * m__00 + _this._10 * m__01 + _this._20 * m__02 + _this._30 * m__03,_this._00 * m__10 + _this._10 * m__11 + _this._20 * m__12 + _this._30 * m__13,_this._00 * m__20 + _this._10 * m__21 + _this._20 * m__22 + _this._30 * m__23,_this._00 * m__30 + _this._10 * m__31 + _this._20 * m__32 + _this._30 * m__33,_this._01 * m__00 + _this._11 * m__01 + _this._21 * m__02 + _this._31 * m__03,_this._01 * m__10 + _this._11 * m__11 + _this._21 * m__12 + _this._31 * m__13,_this._01 * m__20 + _this._11 * m__21 + _this._21 * m__22 + _this._31 * m__23,_this._01 * m__30 + _this._11 * m__31 + _this._21 * m__32 + _this._31 * m__33,_this._02 * m__00 + _this._12 * m__01 + _this._22 * m__02 + _this._32 * m__03,_this._02 * m__10 + _this._12 * m__11 + _this._22 * m__12 + _this._32 * m__13,_this._02 * m__20 + _this._12 * m__21 + _this._22 * m__22 + _this._32 * m__23,_this._02 * m__30 + _this._12 * m__31 + _this._22 * m__32 + _this._32 * m__33,_this._03 * m__00 + _this._13 * m__01 + _this._23 * m__02 + _this._33 * m__03,_this._03 * m__10 + _this._13 * m__11 + _this._23 * m__12 + _this._33 * m__13,_this._03 * m__20 + _this._13 * m__21 + _this._23 * m__22 + _this._33 * m__23,_this._03 * m__30 + _this._13 * m__31 + _this._23 * m__32 + _this._33 * m__33);
+	}
 	,update: function(currentTime) {
 		this.image = utils_DynamicImageFactory.getTexture(this.type,this.camera.get_distance(),this.image);
 		engine_ImageObject.prototype.update.call(this,currentTime);
 	}
 	,__class__: Star
+	,__properties__: $extend(engine_ImageObject.prototype.__properties__,{set_rotation:"set_rotation",get_rotation:"get_rotation"})
 });
 var Std = function() { };
 $hxClasses["Std"] = Std;
@@ -1024,22 +1060,32 @@ UInt.toFloat = function(this1) {
 		return int + 0.0;
 	}
 };
-var engine_BatchRender = function() {
+var engine_BatchRender = function(pipeline,camera) {
 	this.textureVertices = new haxe_ds_ObjectMap();
+	this.indexBuffer = pipeline.get_indexBuffer();
+	this.textureID = pipeline.get_state().getTextureUnit("myTextureSampler");
+	this.pipeline = pipeline;
+	this.camera = camera;
 };
 $hxClasses["engine.BatchRender"] = engine_BatchRender;
 engine_BatchRender.__name__ = true;
 engine_BatchRender.prototype = {
 	textureVertices: null
+	,indexBuffer: null
+	,textureID: null
+	,pipeline: null
+	,vertexBuffer: null
+	,camera: null
 	,add: function(image,vertices) {
-		var vert = this.textureVertices.h[image.__id__];
-		if(vert == null) {
-			this.textureVertices.set(image,vertices);
-		} else {
-			vert.concat(vertices);
+		if(this.textureVertices.h[image.__id__] == null) {
+			this.textureVertices.set(image,[]);
 		}
+		var vert = this.textureVertices.h[image.__id__];
+		vert.push(vertices);
+		this.textureVertices.set(image,vert);
 	}
 	,render: function(g4) {
+		return;
 	}
 	,__class__: engine_BatchRender
 };
@@ -32650,7 +32696,7 @@ utils_GalaxyFactory.generateNewSpiralStar = function(totalStars,galaxyRadius,typ
 				}
 			}
 		} while(starType == null);
-		var newStar = new Star(newStarParam.x,newStarParam.y,newStarParam.z,mass,starType,camera,pipeline);
+		var newStar = new Star(newStarParam.x,newStarParam.y,newStarParam.w,newStarParam.z,mass,starType,camera,pipeline);
 		newStars.push(newStar);
 		utils_GalaxyFactory.allStarsInGalaxy.push(newStar);
 	}
@@ -32663,7 +32709,8 @@ utils_GalaxyFactory.createStar = function(a,b,index,totalStars,armCount,maxStarR
 	var x = r * Math.cos(theta + angleOffset);
 	var y = r * Math.sin(theta + angleOffset);
 	var starRadius = Main.random.GetFloatIn(0,maxStarRadius) + 1;
-	return new kha_math_Vector3(x,y,starRadius);
+	var rotation = Main.random.GetFloatIn(0,360);
+	return new kha_math_Vector4(x,y,starRadius,rotation);
 };
 utils_GalaxyFactory.isColliding = function(newStar) {
 	return Lambda.exists(utils_GalaxyFactory.allStarsInGalaxy,function(star) {
