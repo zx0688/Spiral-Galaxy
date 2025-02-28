@@ -53,9 +53,12 @@ class Main {
 		random = new Random(Reflect.field(settings, "seed"));
 
 		DynamicImageFactory.init();
-		space = new Scene(pipeline, settings).init();
+		var camera: Camera = new Camera();
+
+		space = new Scene(pipeline, settings, camera).init();
 		ui = new UI(space, settings);
-		batchRender = new BatchRender();
+
+		batchRender = new BatchRender(pipeline, camera);
 
 		Scheduler.addTimeTask(update, 0, 1 / 30);
 		System.notifyOnFrames(render);

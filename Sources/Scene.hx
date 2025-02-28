@@ -35,10 +35,10 @@ class Scene extends ImageObject {
 
 	var lastCameraDistance: Float;
 
-	public function new(pipeline: Pipeline, settings: Dynamic) {
+	public function new(pipeline: Pipeline, settings: Dynamic, camera: Camera) {
 		this.settings = settings;
+		this.camera = camera;
 
-		var camera = new Camera();
 		var space = Assets.images.galaxy;
 
 		super(0, 0, System.windowWidth(0), System.windowHeight(0), space, camera, pipeline);
