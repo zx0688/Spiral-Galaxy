@@ -103,7 +103,7 @@ class DisplayObject implements IDrawable implements IUpdatable implements IResiz
 		this.vertexBuffer.unlock();
 	}
 
-	private function updateView() {
+	public function updateView() {
 		var pos = Camera.ConvertGlobalPointToPerspectivePoint(x, y);
 		model = FastMatrix4.identity();
 		model = model.multmat(camera.projection);

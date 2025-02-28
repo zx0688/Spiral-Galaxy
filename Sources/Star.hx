@@ -1,3 +1,4 @@
+import kha.math.FastMatrix4;
 import utils.DynamicImageFactory;
 import engine.ImageObject;
 
@@ -10,7 +11,19 @@ class Star extends ImageObject {
 	public var mass: Float;
 	public var type: String;
 
-	public function new(x: Float, y: Float, radius: Float, mass: Float, type: String, camera: Camera, pipeline: Pipeline) {
+	@:isVar public var rotation(get, set): Float;
+
+	function get_rotation() {
+		return this.rotation;
+	}
+
+	function set_rotation(v) {
+		this.rotation = v;
+		updateView();
+		return v;
+	}
+
+	public function new(x: Float, y: Float, rotation: Float, radius: Float, mass: Float, type: String, camera: Camera, pipeline: Pipeline) {
 		this.mass = mass;
 		this.type = type;
 
@@ -18,8 +31,15 @@ class Star extends ImageObject {
 
 		super(x, y, radius, radius, image, camera, pipeline);
 
+		this.rotation = rotation;
+
 		// emulate 3D star field
 		// z = Main.random.GetFloatIn(0, 50);
+	}
+
+	override function updateView() {
+		super.updateView();
+		model = model.multmat(FastMatrix4.rotationZ(rotation));
 	}
 
 	override function update(currentTime: Float) {

@@ -1,6 +1,6 @@
 package utils;
 
-import kha.math.Vector3;
+import kha.math.Vector4;
 import kha.System;
 import kha.math.Random;
 
@@ -49,7 +49,8 @@ class GalaxyFactory {
 				}
 			} while (starType == null);
 
-			var newStar = new Star(newStarParam.x, newStarParam.y, newStarParam.z, mass, starType, camera, pipeline);
+			var newStar = new Star(newStarParam.x, newStarParam.y, newStarParam.w, newStarParam.z, mass, starType, camera, pipeline);
+
 			newStars.push(newStar);
 			allStarsInGalaxy.push(newStar);
 		}
@@ -57,7 +58,7 @@ class GalaxyFactory {
 		return newStars;
 	}
 
-	private static function createStar(a: Float, b: Float, index: Int, totalStars: Int, armCount: Int, maxStarRadius: Float): Vector3 {
+	private static function createStar(a: Float, b: Float, index: Int, totalStars: Int, armCount: Int, maxStarRadius: Float): Vector4 {
 		var theta = (index / totalStars) * Math.PI * 4;
 		var r = Math.max(System.windowHeight(0),
 			System.windowWidth(0)) * Main.random.GetFloatIn(0, 1) * (Math.exp(b * theta) * a); // a * Math.exp(b * theta) * (Math.random()) * 600;
@@ -65,11 +66,12 @@ class GalaxyFactory {
 		var x = r * Math.cos(theta + angleOffset);
 		var y = r * Math.sin(theta + angleOffset);
 		var starRadius = Main.random.GetFloatIn(0, maxStarRadius) + 1;
-		return new Vector3(x, y, starRadius);
+		var rotation: Float = Main.random.GetFloatIn(0, 360);
+		return new Vector4(x, y, starRadius, rotation);
 	}
 
 	// squares method
-	private static function isColliding(newStar: Vector3): Bool {
+	private static function isColliding(newStar: Vector4): Bool {
 		return Lambda.exists(allStarsInGalaxy, (star) -> {
 			var dx = star.x - newStar.x;
 			var dy = star.y - newStar.y;
