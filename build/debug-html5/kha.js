@@ -373,7 +373,7 @@ Main.main = function() {
 		Main.pipeline = new Pipeline();
 		Main.preloader = new Preloader(Main.pipeline).start(Main.init);
 	};
-	kha_System.start(new kha_SystemOptions("Spiral Galaxy",1000,1000,new kha_WindowOptions(null,-1,-1,800,600,-1,true,null,1),null,null),loadAssets);
+	kha_System.start(new kha_SystemOptions("Spiral Galaxy",1280,1024,new kha_WindowOptions(null,-1,-1,800,600,-1,true,null,1),null,null),loadAssets);
 };
 Main.init = function() {
 	Main.settings = JSON.parse(Reflect.field(kha_Assets.blobs,"settings_json").toString());
@@ -2714,8 +2714,8 @@ var kha__$Assets_ImageList = function() {
 	this.red_gigant_lowDescription = { name : "red_gigant_low", original_height : 24, file_sizes : [1772], original_width : 25, files : ["red_gigant_low.png"], type : "image"};
 	this.red_gigant_lowName = "red_gigant_low";
 	this.red_gigant_low = null;
-	this.red_gigant_highSize = 20409;
-	this.red_gigant_highDescription = { name : "red_gigant_high", original_height : 98, file_sizes : [20409], original_width : 100, files : ["red_gigant_high.png"], type : "image"};
+	this.red_gigant_highSize = 58587;
+	this.red_gigant_highDescription = { name : "red_gigant_high", original_height : 192, file_sizes : [58587], original_width : 196, files : ["red_gigant_high.png"], type : "image"};
 	this.red_gigant_highName = "red_gigant_high";
 	this.red_gigant_high = null;
 	this.galaxy1Size = 715780;

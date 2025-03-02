@@ -38,8 +38,8 @@ class Main {
 	public static function main() {
 		System.start({
 			title: "Spiral Galaxy",
-			width: 1000,
-			height: 1000,
+			width: 1280,
+			height: 1024,
 			window: {
 				mode: WindowMode.Fullscreen
 			}

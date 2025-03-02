@@ -373,7 +373,7 @@ Main.main = function() {
 		Main.pipeline = new Pipeline();
 		Main.preloader = new Preloader(Main.pipeline).start(Main.init);
 	};
-	kha_System.start(new kha_SystemOptions("Spiral Galaxy",1000,1000,new kha_WindowOptions(null,-1,-1,800,600,-1,true,null,1),null,null),loadAssets);
+	kha_System.start(new kha_SystemOptions("Spiral Galaxy",1280,1024,new kha_WindowOptions(null,-1,-1,800,600,-1,true,null,1),null,null),loadAssets);
 };
 Main.init = function() {
 	Main.settings = JSON.parse(Reflect.field(kha_Assets.blobs,"settings_json").toString());

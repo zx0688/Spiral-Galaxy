@@ -483,11 +483,11 @@
 				"red_gigant_high.png"
 			],
 			"file_sizes": [
-				20409
+				58587
 			],
 			"type": "image",
-			"original_width": 100,
-			"original_height": 98
+			"original_width": 196,
+			"original_height": 192
 		},
 		{
 			"name": "red_gigant_low",
