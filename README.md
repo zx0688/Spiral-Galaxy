@@ -14,6 +14,7 @@ build/html5/index.html
 features:
 - frustum culling
 - instanced culling
+- dynamic texture upscaling
   
 5 drawcalls
 
