@@ -11,3 +11,9 @@ Assets/settings.json
 
 build/html5/index.html
 
+features:
+- frustum culling
+- instanced culling
+  
+5 drawcalls
+
