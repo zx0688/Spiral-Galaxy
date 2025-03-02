@@ -39,9 +39,11 @@ class Scene extends ImageObject {
 		this.settings = settings;
 		this.camera = camera;
 
-		var space = Assets.images.galaxy;
+		var galaxy = Assets.images.galaxy1;
 
-		super(0, 0, System.windowWidth(0), System.windowHeight(0), space, camera, pipeline);
+		super(0, 0, Camera.BASE_RESOLUTION_WIDTH * 1.2, Camera.BASE_RESOLUTION_HEIGHT, galaxy, camera, pipeline);
+
+		this.z = 0;
 
 		kha.input.Mouse.get().notify(onMouseDown, onMouseUp, onMouseMove, onMouseWheel);
 		kha.input.Keyboard.get().notify(onKeyDown, onKeyUp);
@@ -58,7 +60,7 @@ class Scene extends ImageObject {
 	}
 
 	public function generateNewStars(count: Int): Void {
-		var newStars = GalaxyFactory.generateNewSpiralStar(count, 1000, cast Reflect.field(settings, "typeStars"), camera, pipeline, settings);
+		var newStars = GalaxyFactory.generateNewSpiralStar(count, 2000, cast Reflect.field(settings, "typeStars"), camera, pipeline, settings);
 		for (star in newStars) {
 			addChild(star);
 		}

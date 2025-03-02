@@ -1,6 +1,6 @@
 package utils;
 
-import kha.math.Vector4;
+import kha.math.FastVector4;
 import kha.System;
 import kha.math.Random;
 
@@ -32,9 +32,11 @@ class GalaxyFactory {
 			var newStarParam = null;
 			attempt = 0;
 			do {
-				newStarParam = createStar(a, b, index, totalStars, armCount, Math.floor(16 * Math.exp(-0.05 * attempt) + 2));
+				newStarParam = createStar(a, b, index, totalStars, armCount, Math.floor(14 * Math.exp(-0.05 * attempt) + 1), attempt);
 				attempt++;
-			} while (isColliding(newStarParam) && attempt < 250);
+			} while (isColliding(newStarParam) && attempt < 100);
+
+			trace(attempt);
 
 			var starType: String = null;
 			var mass: Float = 0;
@@ -58,25 +60,24 @@ class GalaxyFactory {
 		return newStars;
 	}
 
-	private static function createStar(a: Float, b: Float, index: Int, totalStars: Int, armCount: Int, maxStarRadius: Float): Vector4 {
+	private static function createStar(a: Float, b: Float, index: Int, totalStars: Int, armCount: Int, maxStarRadius: Float, attempt: Int): FastVector4 {
 		var theta = (index / totalStars) * Math.PI * 4;
-		var r = Math.max(System.windowHeight(0),
-			System.windowWidth(0)) * Main.random.GetFloatIn(0, 1) * (Math.exp(b * theta) * a); // a * Math.exp(b * theta) * (Math.random()) * 600;
+		var r = 600 * Main.random.GetFloatIn(0, 1) * (Math.exp(b * theta) * a) * (1 + Math.pow(attempt, 2));
 		var angleOffset = (index % armCount) * (Math.PI * 2 / armCount) + (0.1 * Math.PI * Main.random.GetFloatIn(0, 1));
 		var x = r * Math.cos(theta + angleOffset);
 		var y = r * Math.sin(theta + angleOffset);
-		var starRadius = Main.random.GetFloatIn(0, maxStarRadius) + 1;
+		var starRadius = Main.random.GetFloatIn(0, maxStarRadius) + 2;
 		var rotation: Float = Main.random.GetFloatIn(0, 360);
-		return new Vector4(x, y, starRadius, rotation);
+		return new FastVector4(x, y, starRadius, rotation);
 	}
 
 	// squares method
-	private static function isColliding(newStar: Vector4): Bool {
+	private static function isColliding(newStar: FastVector4): Bool {
 		return Lambda.exists(allStarsInGalaxy, (star) -> {
 			var dx = star.x - newStar.x;
 			var dy = star.y - newStar.y;
 			var distance: Float = dx * dx + dy * dy;
-			var minDistance = star.width + newStar.z;
+			var minDistance = star.width + newStar.z * 2;
 			return distance < minDistance * minDistance;
 		});
 	}

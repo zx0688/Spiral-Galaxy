@@ -1,7 +1,6 @@
 #version 300 es
 
-uniform mat4 MVP;
-
+in mat4 MVP;
 in vec3 pos;
 out vec2 vUV;
 in vec2 uv;

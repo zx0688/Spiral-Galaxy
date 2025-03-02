@@ -59,9 +59,9 @@
 			"original_height": 25
 		},
 		{
-			"name": "galaxy",
+			"name": "galaxy1",
 			"files": [
-				"galaxy.jpg"
+				"galaxy1.jpg"
 			],
 			"file_sizes": [
 				715780
@@ -483,11 +483,11 @@
 				"red_gigant_high.png"
 			],
 			"file_sizes": [
-				58587
+				20409
 			],
 			"type": "image",
-			"original_width": 196,
-			"original_height": 192
+			"original_width": 100,
+			"original_height": 98
 		},
 		{
 			"name": "red_gigant_low",
@@ -535,7 +535,7 @@
 			],
 			"uniforms": [
 				{
-					"name": "myTextureSampler",
+					"name": "utexture",
 					"type": "sampler2D"
 				}
 			],
@@ -552,6 +552,10 @@
 			],
 			"type": "shader",
 			"inputs": [
+				{
+					"name": "MVP",
+					"type": "mat4"
+				},
 				{
 					"name": "pos",
 					"type": "vec3"
@@ -575,12 +579,7 @@
 					"type": "vec2"
 				}
 			],
-			"uniforms": [
-				{
-					"name": "MVP",
-					"type": "mat4"
-				}
-			],
+			"uniforms": [],
 			"types": [
 				{
 					"name": "gl_PerVertex",

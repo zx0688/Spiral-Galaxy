@@ -1,3 +1,4 @@
+import kha.System;
 import kha.math.FastMatrix4;
 import utils.DynamicImageFactory;
 import engine.ImageObject;
@@ -19,7 +20,6 @@ class Star extends ImageObject {
 
 	function set_rotation(v) {
 		this.rotation = v;
-		updateView();
 		return v;
 	}
 
@@ -28,22 +28,17 @@ class Star extends ImageObject {
 		this.type = type;
 
 		this.image = DynamicImageFactory.getTexture(type, camera.distance, null);
-
-		super(x, y, radius, radius, image, camera, pipeline);
-
+		super(x, y, radius * 2, radius * 2, image, camera, pipeline);
 		this.rotation = rotation;
+
+		this.z = 0.1;
 
 		// emulate 3D star field
 		// z = Main.random.GetFloatIn(0, 50);
 	}
 
-	override function updateView() {
-		super.updateView();
-		model = model.multmat(FastMatrix4.rotationZ(rotation));
-	}
-
 	override function update(currentTime: Float) {
-		image = DynamicImageFactory.getTexture(type, camera.distance, image);
+		this.image = DynamicImageFactory.getTexture(type, camera.distance, image);
 		super.update(currentTime);
 	}
 }

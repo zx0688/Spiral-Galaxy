@@ -18,14 +18,14 @@ engine_IResizable.prototype = {
 	,__class__: engine_IResizable
 };
 var Camera = function() {
-	this.position = new kha_math_Vector2(0,0);
+	this.position = new kha_math_FastVector2(0,0);
 	this.scope = new kha_math_FastVector4(0,0,0,0);
 	var aspect = kha_System.windowWidth(0) / kha_System.windowHeight(0);
 	var uh = 1.0 / Math.tan(22.5);
 	var uw = uh / aspect;
 	this.projection = new kha_math_FastMatrix4(uw,0,0,0,0,uh,0,0,0,0,-1.00200200200200196,-0.200200200200200185,0,0,-1,0);
-	this.set_distance(99);
-	this.set_position(new kha_math_Vector2(0,0));
+	this.set_distance(100);
+	this.set_position(new kha_math_FastVector2(0,0));
 };
 $hxClasses["Camera"] = Camera;
 Camera.__name__ = true;
@@ -33,34 +33,34 @@ Camera.__interfaces__ = [engine_IResizable];
 Camera.ConvertPointByPerspective = function(_x,_y,_distance1,_distance2) {
 	var x = _distance2 / _distance1 * _x;
 	var y = _distance2 / _distance1 * _y;
-	return new kha_math_Vector2(x,y);
+	return new kha_math_FastVector2(x,y);
 };
-Camera.ConvertPerspectivePointToGlovalPoint = function(_x,_y,_distance) {
-	if(_distance == null) {
-		_distance = 100;
-	}
-	var tan = 0.41421112;
-	var aspectRatio = kha_System.windowWidth(0) / kha_System.windowHeight(0);
-	var x = _x * kha_System.windowHeight(0) / (_distance * aspectRatio * tan);
-	var y = _y * kha_System.windowWidth(0) / (_distance * aspectRatio * tan * aspectRatio);
-	return new kha_math_Vector2(x,y);
+Camera.ConvertPerspectivePointToGlobalPoint = function(_x,_y) {
+	var tan = 0.4142;
+	var sw = 1000;
+	var sh = 1000;
+	var aspectRatio = sw / sh;
+	var h = 200 * tan;
+	var w = h * aspectRatio;
+	var scaleFactor = 0.68;
+	var xn = _x / (w * scaleFactor);
+	var yn = _y / (h * scaleFactor);
+	var x = xn * sw;
+	var y = yn * sh;
+	return new kha_math_FastVector2(x,y);
 };
-Camera.ConvertGlobalPointToPerspectivePoint = function(_x,_y,_distance) {
-	if(_distance == null) {
-		_distance = 100;
-	}
-	var tan = 0.41421112;
-	var aspectRatio = kha_System.windowWidth(0) / kha_System.windowHeight(0);
-	var x = _distance * aspectRatio * tan * _x / kha_System.windowHeight(0);
-	var y = _distance * aspectRatio * tan * aspectRatio * _y / kha_System.windowWidth(0);
-	return new kha_math_Vector2(x,y);
-};
-Camera.GenerateVertixForImageGlobalSize = function(_width,_height) {
-	var pos = Camera.ConvertGlobalPointToPerspectivePoint(_width,_height);
-	var height = pos.y;
-	var width = pos.x;
-	var vertices = [-width,-height,0.0,0.0,1.0,width,-height,0.0,1.0,1.0,width,height,0.0,1.0,0.0,-width,height,0.0,0.0,0.0,0.0];
-	return vertices;
+Camera.ConvertGlobalPointToPerspectivePoint = function(_x,_y) {
+	var tan = 0.4142;
+	var sw = 1000;
+	var sh = 1000;
+	var aspectRation = sw / sh;
+	var h = 200 * tan;
+	var w = h * aspectRation;
+	var xn = _x / sw * 0.68;
+	var yn = _y / sh * 0.68;
+	var x = xn * w;
+	var y = yn * h;
+	return new kha_math_FastVector2(x,y);
 };
 Camera.prototype = {
 	projection: null
@@ -84,8 +84,8 @@ Camera.prototype = {
 		if(value == this.get_distance()) {
 			return value;
 		}
-		if(value > 99) {
-			value = 99;
+		if(value > 100) {
+			value = 100;
 		}
 		if(value < 1) {
 			value = 1;
@@ -240,11 +240,11 @@ Camera.prototype = {
 	}
 	,scopeUpdate: function() {
 		var size = Camera.ConvertPointByPerspective(kha_System.windowWidth(0),kha_System.windowHeight(0),100,this.get_distance());
-		var position = Camera.ConvertPerspectivePointToGlovalPoint(this.get_position().x,this.get_position().y,100);
-		this.scope.x = position.x;
-		this.scope.y = position.y;
-		this.scope.z = size.x;
-		this.scope.w = size.y;
+		var glob = Camera.ConvertPerspectivePointToGlobalPoint(this.get_position().x,this.get_position().y);
+		this.scope.x = glob.x;
+		this.scope.y = glob.y;
+		this.scope.z = size.x * 1.1;
+		this.scope.w = size.y * 1.1;
 	}
 	,resize: function() {
 		var aspect = kha_System.windowWidth(0) / kha_System.windowHeight(0);
@@ -357,6 +357,14 @@ Lambda.exists = function(it,f) {
 	}
 	return false;
 };
+Lambda.fold = function(it,f,first) {
+	var x = $getIterator(it);
+	while(x.hasNext()) {
+		var x1 = x.next();
+		first = f(x1,first);
+	}
+	return first;
+};
 var Main = function() { };
 $hxClasses["Main"] = Main;
 Main.__name__ = true;
@@ -365,7 +373,7 @@ Main.main = function() {
 		Main.pipeline = new Pipeline();
 		Main.preloader = new Preloader(Main.pipeline).start(Main.init);
 	};
-	kha_System.start(new kha_SystemOptions("Spiral Galaxy",2560,1440,new kha_WindowOptions(null,-1,-1,800,600,-1,true,null,1),null,null),loadAssets);
+	kha_System.start(new kha_SystemOptions("Spiral Galaxy",1000,1000,new kha_WindowOptions(null,-1,-1,800,600,-1,true,null,1),null,null),loadAssets);
 };
 Main.init = function() {
 	Main.settings = JSON.parse(Reflect.field(kha_Assets.blobs,"settings_json").toString());
@@ -373,28 +381,31 @@ Main.init = function() {
 	utils_DynamicImageFactory.init();
 	var camera = new Camera();
 	Main.space = new Scene(Main.pipeline,Main.settings,camera).init();
-	Main.ui = new ui_UI(Main.space,Main.settings);
-	Main.batchRender = new engine_BatchRender(Main.pipeline,camera);
+	Main.instancedRender = new engine_InstancedRender(Main.pipeline,camera);
+	Main.ui = new ui_UI(Main.space,Main.settings,Main.instancedRender);
 	kha_Scheduler.addTimeTask(Main.update,0,0.0333333333333333329);
 	kha_System.notifyOnFrames(Main.render);
 	window.onresize = function() {
 		Main.resize();
 	};
+	Main.update();
 };
 Main.resize = function() {
 	Main.space.resize();
 };
 Main.update = function() {
-	Main.space.update(kha_Scheduler.time());
+	var time = kha_Scheduler.time();
+	Main.space.update(time);
+	Main.instancedRender.update(time);
 };
 Main.render = function(frames) {
 	var g4 = frames[0].get_g4();
 	g4.begin();
 	g4.clear(-16777216);
 	g4.setPipeline(Main.pipeline.get_state());
-	Main.preloader.render(g4,Main.batchRender);
-	Main.space.render(g4,Main.batchRender);
-	Main.batchRender.render(g4);
+	Main.preloader.render(g4,Main.instancedRender);
+	Main.space.render(g4,Main.instancedRender);
+	Main.instancedRender.render(g4,null);
 	g4.end();
 	var g2 = frames[0].get_g2();
 	g2.begin(false);
@@ -403,14 +414,18 @@ Main.render = function(frames) {
 };
 Math.__name__ = true;
 var Pipeline = function() {
-	this.structure = new kha_graphics4_VertexStructure();
-	this.get_structure().add("pos",2);
-	this.get_structure().add("uv",1);
+	this.structureVertices = new kha_graphics4_VertexStructure();
+	this.get_structureVertices().add("pos",2);
+	this.get_structureVertices().add("uv",1);
+	this.structureModel = new kha_graphics4_VertexStructure();
+	this.get_structureModel().add("MVP",4);
 	this.state = new kha_graphics4_PipelineState();
-	var tmp = this.get_structure();
-	this.get_state().inputLayout = [tmp];
+	var tmp = this.get_structureVertices();
+	var tmp1 = this.get_structureModel();
+	this.get_state().inputLayout = [tmp,tmp1];
 	this.get_state().vertexShader = kha_Shaders.simple_vert;
 	this.get_state().fragmentShader = kha_Shaders.simple_frag;
+	this.get_state().cullMode = 2;
 	if(this.get_state().vertexShader == null || this.get_state().fragmentShader == null) {
 		throw new haxe_Exception("shadera are not loaded!");
 	}
@@ -428,24 +443,43 @@ var Pipeline = function() {
 		var tmp = i * 4;
 	}
 	this.get_indexBuffer().unlock();
+	var vertices = [-1,-1,1.0,0.0,1.0,1,-1,1.0,1.0,1.0,1,1,1.0,1.0,0.0,-1,1,1.0,0.0,0.0];
+	this.vertexBuffer = new kha_graphics4_VertexBuffer(20,this.get_structureVertices(),0,0);
+	var iData = this.get_vertexBuffer().lock();
+	var _g = 0;
+	var _g1 = vertices.length;
+	while(_g < _g1) {
+		var v = _g++;
+		var v1 = vertices[v];
+		iData.setFloat32(v * 4,v1,true);
+	}
+	this.get_vertexBuffer().unlock();
 };
 $hxClasses["Pipeline"] = Pipeline;
 Pipeline.__name__ = true;
 Pipeline.prototype = {
-	structure: null
-	,get_structure: function() {
-		return this.structure;
+	structureModel: null
+	,get_structureModel: function() {
+		return this.structureModel;
+	}
+	,structureVertices: null
+	,get_structureVertices: function() {
+		return this.structureVertices;
 	}
 	,indexBuffer: null
 	,get_indexBuffer: function() {
 		return this.indexBuffer;
+	}
+	,vertexBuffer: null
+	,get_vertexBuffer: function() {
+		return this.vertexBuffer;
 	}
 	,state: null
 	,get_state: function() {
 		return this.state;
 	}
 	,__class__: Pipeline
-	,__properties__: {get_state:"get_state",get_indexBuffer:"get_indexBuffer",get_structure:"get_structure"}
+	,__properties__: {get_state:"get_state",get_vertexBuffer:"get_vertexBuffer",get_indexBuffer:"get_indexBuffer",get_structureVertices:"get_structureVertices",get_structureModel:"get_structureModel"}
 };
 var engine_IUpdatable = function() { };
 $hxClasses["engine.IUpdatable"] = engine_IUpdatable;
@@ -470,40 +504,36 @@ var engine_DisplayObject = function(x,y,width,height,camera,pipeline) {
 	this.height = 0;
 	this.width = 0;
 	this.parent = null;
-	this.vertexBuffer = null;
 	this.children = [];
-	this.model = new kha_math_FastMatrix4(1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1);
+	this.viewPosition = new kha_math_FastVector3(0,0,0);
+	this.viewSize = new kha_math_FastVector2(0,0);
 	this.pipeline = pipeline;
 	this.camera = camera;
-	this.set_width(width);
-	this.set_height(height);
 	this.set_x(x);
 	this.set_y(y);
 	this.set_z(this.get_z());
+	this.set_width(width);
+	this.set_height(height);
 	this.isVisible = true;
 	this.isActive = true;
-	this.mvpID = pipeline.get_state().getConstantLocation("MVP");
-	this.indexBuffer = pipeline.get_indexBuffer();
 };
 $hxClasses["engine.DisplayObject"] = engine_DisplayObject;
 engine_DisplayObject.__name__ = true;
 engine_DisplayObject.__interfaces__ = [engine_IResizable,engine_IUpdatable,engine_IDrawable];
 engine_DisplayObject.prototype = {
 	children: null
-	,vertexBuffer: null
 	,parent: null
 	,isVisible: null
 	,pipeline: null
 	,isActive: null
 	,camera: null
-	,indexBuffer: null
-	,model: null
-	,mvpID: null
 	,width: null
 	,height: null
 	,x: null
 	,y: null
 	,z: null
+	,viewPosition: null
+	,viewSize: null
 	,get_x: function() {
 		return this.x;
 	}
@@ -515,17 +545,17 @@ engine_DisplayObject.prototype = {
 	}
 	,set_x: function(x) {
 		this.x = x;
-		this.updateView();
+		this.updatePosition();
 		return x;
 	}
 	,set_y: function(y) {
 		this.y = y;
-		this.updateView();
+		this.updatePosition();
 		return y;
 	}
 	,set_z: function(z) {
 		this.z = z;
-		this.updateView();
+		this.updatePosition();
 		return z;
 	}
 	,get_width: function() {
@@ -536,54 +566,22 @@ engine_DisplayObject.prototype = {
 	}
 	,set_width: function(width) {
 		this.width = width;
-		this.updateVertexBuffer();
+		this.updateSize();
 		return width;
 	}
 	,set_height: function(height) {
 		this.height = height;
-		this.updateVertexBuffer();
+		this.updateSize();
 		return height;
 	}
-	,updateVertexBuffer: function() {
-		var vertices = Camera.GenerateVertixForImageGlobalSize(this.get_width(),this.get_height());
-		this.vertexBuffer = new kha_graphics4_VertexBuffer(vertices.length,this.pipeline.get_structure(),0);
-		var vbData = this.vertexBuffer.lock();
-		var _g = 0;
-		var _g1 = vertices.length;
-		while(_g < _g1) {
-			var i = _g++;
-			var v = vertices[i];
-			vbData.setFloat32(i * 4,v,true);
-		}
-		this.vertexBuffer.unlock();
+	,updateSize: function() {
+		this.viewSize = Camera.ConvertGlobalPointToPerspectivePoint(this.get_width() / 2,this.get_height() / 2);
+		this.viewSize.x *= 2;
+		this.viewSize.y *= 2;
 	}
-	,updateView: function() {
+	,updatePosition: function() {
 		var pos = Camera.ConvertGlobalPointToPerspectivePoint(this.get_x(),this.get_y());
-		this.model = new kha_math_FastMatrix4(1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1);
-		var _this = this.model;
-		var m = this.camera.projection;
-		this.model = new kha_math_FastMatrix4(_this._00 * m._00 + _this._10 * m._01 + _this._20 * m._02 + _this._30 * m._03,_this._00 * m._10 + _this._10 * m._11 + _this._20 * m._12 + _this._30 * m._13,_this._00 * m._20 + _this._10 * m._21 + _this._20 * m._22 + _this._30 * m._23,_this._00 * m._30 + _this._10 * m._31 + _this._20 * m._32 + _this._30 * m._33,_this._01 * m._00 + _this._11 * m._01 + _this._21 * m._02 + _this._31 * m._03,_this._01 * m._10 + _this._11 * m._11 + _this._21 * m._12 + _this._31 * m._13,_this._01 * m._20 + _this._11 * m._21 + _this._21 * m._22 + _this._31 * m._23,_this._01 * m._30 + _this._11 * m._31 + _this._21 * m._32 + _this._31 * m._33,_this._02 * m._00 + _this._12 * m._01 + _this._22 * m._02 + _this._32 * m._03,_this._02 * m._10 + _this._12 * m._11 + _this._22 * m._12 + _this._32 * m._13,_this._02 * m._20 + _this._12 * m._21 + _this._22 * m._22 + _this._32 * m._23,_this._02 * m._30 + _this._12 * m._31 + _this._22 * m._32 + _this._32 * m._33,_this._03 * m._00 + _this._13 * m._01 + _this._23 * m._02 + _this._33 * m._03,_this._03 * m._10 + _this._13 * m._11 + _this._23 * m._12 + _this._33 * m._13,_this._03 * m._20 + _this._13 * m._21 + _this._23 * m._22 + _this._33 * m._23,_this._03 * m._30 + _this._13 * m._31 + _this._23 * m._32 + _this._33 * m._33);
-		var _this = this.model;
-		var m = this.camera.view;
-		this.model = new kha_math_FastMatrix4(_this._00 * m._00 + _this._10 * m._01 + _this._20 * m._02 + _this._30 * m._03,_this._00 * m._10 + _this._10 * m._11 + _this._20 * m._12 + _this._30 * m._13,_this._00 * m._20 + _this._10 * m._21 + _this._20 * m._22 + _this._30 * m._23,_this._00 * m._30 + _this._10 * m._31 + _this._20 * m._32 + _this._30 * m._33,_this._01 * m._00 + _this._11 * m._01 + _this._21 * m._02 + _this._31 * m._03,_this._01 * m._10 + _this._11 * m._11 + _this._21 * m._12 + _this._31 * m._13,_this._01 * m._20 + _this._11 * m._21 + _this._21 * m._22 + _this._31 * m._23,_this._01 * m._30 + _this._11 * m._31 + _this._21 * m._32 + _this._31 * m._33,_this._02 * m._00 + _this._12 * m._01 + _this._22 * m._02 + _this._32 * m._03,_this._02 * m._10 + _this._12 * m._11 + _this._22 * m._12 + _this._32 * m._13,_this._02 * m._20 + _this._12 * m._21 + _this._22 * m._22 + _this._32 * m._23,_this._02 * m._30 + _this._12 * m._31 + _this._22 * m._32 + _this._32 * m._33,_this._03 * m._00 + _this._13 * m._01 + _this._23 * m._02 + _this._33 * m._03,_this._03 * m._10 + _this._13 * m._11 + _this._23 * m._12 + _this._33 * m._13,_this._03 * m._20 + _this._13 * m._21 + _this._23 * m._22 + _this._33 * m._23,_this._03 * m._30 + _this._13 * m._31 + _this._23 * m._32 + _this._33 * m._33);
-		var _this = this.model;
-		var m__00 = 1;
-		var m__10 = 0;
-		var m__20 = 0;
-		var m__30 = pos.x;
-		var m__01 = 0;
-		var m__11 = 1;
-		var m__21 = 0;
-		var m__31 = pos.y;
-		var m__02 = 0;
-		var m__12 = 0;
-		var m__22 = 1;
-		var m__32 = this.get_z();
-		var m__03 = 0;
-		var m__13 = 0;
-		var m__23 = 0;
-		var m__33 = 1;
-		this.model = new kha_math_FastMatrix4(_this._00 * m__00 + _this._10 * m__01 + _this._20 * m__02 + _this._30 * m__03,_this._00 * m__10 + _this._10 * m__11 + _this._20 * m__12 + _this._30 * m__13,_this._00 * m__20 + _this._10 * m__21 + _this._20 * m__22 + _this._30 * m__23,_this._00 * m__30 + _this._10 * m__31 + _this._20 * m__32 + _this._30 * m__33,_this._01 * m__00 + _this._11 * m__01 + _this._21 * m__02 + _this._31 * m__03,_this._01 * m__10 + _this._11 * m__11 + _this._21 * m__12 + _this._31 * m__13,_this._01 * m__20 + _this._11 * m__21 + _this._21 * m__22 + _this._31 * m__23,_this._01 * m__30 + _this._11 * m__31 + _this._21 * m__32 + _this._31 * m__33,_this._02 * m__00 + _this._12 * m__01 + _this._22 * m__02 + _this._32 * m__03,_this._02 * m__10 + _this._12 * m__11 + _this._22 * m__12 + _this._32 * m__13,_this._02 * m__20 + _this._12 * m__21 + _this._22 * m__22 + _this._32 * m__23,_this._02 * m__30 + _this._12 * m__31 + _this._22 * m__32 + _this._32 * m__33,_this._03 * m__00 + _this._13 * m__01 + _this._23 * m__02 + _this._33 * m__03,_this._03 * m__10 + _this._13 * m__11 + _this._23 * m__12 + _this._33 * m__13,_this._03 * m__20 + _this._13 * m__21 + _this._23 * m__22 + _this._33 * m__23,_this._03 * m__30 + _this._13 * m__31 + _this._23 * m__32 + _this._33 * m__33);
+		this.viewPosition = new kha_math_FastVector3(pos.x,pos.y,this.get_z());
 	}
 	,addChild: function(object) {
 		this.children.push(object);
@@ -604,13 +602,6 @@ engine_DisplayObject.prototype = {
 			++_g;
 			child.render(g4,batch);
 		}
-		if(!this.isVisible) {
-			return;
-		}
-		g4.setMatrix(this.mvpID,this.model);
-		g4.setVertexBuffer(this.vertexBuffer);
-		g4.setIndexBuffer(this.indexBuffer);
-		g4.drawIndexedVertices(0,this.indexBuffer.count());
 	}
 	,update: function(currentTime) {
 		var _g = 0;
@@ -620,11 +611,11 @@ engine_DisplayObject.prototype = {
 			++_g;
 			child.update(currentTime);
 		}
+		if(!this.isActive) {
+			return;
+		}
 		var rect = this.camera.scope;
 		this.isVisible = !(this.get_x() + this.get_width() <= rect.x - rect.z || this.get_x() - this.get_width() >= rect.x + rect.z || this.get_y() + this.get_height() <= rect.y - rect.w || this.get_y() - this.get_height() >= rect.y + rect.w);
-		if(this.isVisible) {
-			this.updateView();
-		}
 	}
 	,resize: function() {
 		var _g = 0;
@@ -634,8 +625,8 @@ engine_DisplayObject.prototype = {
 			++_g;
 			child.resize();
 		}
-		this.updateView();
-		this.updateVertexBuffer();
+		this.updatePosition();
+		this.updateSize();
 	}
 	,__class__: engine_DisplayObject
 	,__properties__: {set_z:"set_z",get_z:"get_z",set_y:"set_y",get_y:"get_y",set_x:"set_x",get_x:"get_x",set_height:"set_height",get_height:"get_height",set_width:"set_width",get_width:"get_width"}
@@ -703,13 +694,13 @@ Reflect.isFunction = function(f) {
 	}
 };
 var engine_ImageObject = function(x,y,width,height,image,camera,pipeline) {
-	this.textureID = pipeline.get_state().getTextureUnit("myTextureSampler");
+	this.textureID = pipeline.get_state().getTextureUnit("utexture");
 	this.image = image;
 	engine_DisplayObject.call(this,x,y,width,height,camera,pipeline);
 };
 $hxClasses["engine.ImageObject"] = engine_ImageObject;
 engine_ImageObject.__name__ = true;
-engine_ImageObject.__interfaces__ = [engine_IDrawable];
+engine_ImageObject.__interfaces__ = [engine_IUpdatable];
 engine_ImageObject.__super__ = engine_DisplayObject;
 engine_ImageObject.prototype = $extend(engine_DisplayObject.prototype,{
 	image: null
@@ -728,14 +719,7 @@ engine_ImageObject.prototype = $extend(engine_DisplayObject.prototype,{
 		if(!this.isVisible) {
 			return;
 		}
-		g4.setTexture(this.textureID,this.image);
-		g4.setMatrix(this.mvpID,this.model);
-		g4.setVertexBuffer(this.vertexBuffer);
-		g4.setIndexBuffer(this.indexBuffer);
-		g4.drawIndexedVertices(0,this.indexBuffer.count());
-	}
-	,update: function(currentTime) {
-		engine_DisplayObject.prototype.update.call(this,currentTime);
+		batch.add(this.image,{ position : this.viewPosition, size : this.viewSize, angle : 0});
 	}
 	,__class__: engine_ImageObject
 });
@@ -750,8 +734,9 @@ var Scene = function(pipeline,settings,camera) {
 	this.lerpSpeed = 0.12;
 	this.settings = settings;
 	this.camera = camera;
-	var space = kha_Assets.images.galaxy;
-	engine_ImageObject.call(this,0,0,kha_System.windowWidth(0),kha_System.windowHeight(0),space,camera,pipeline);
+	var galaxy = kha_Assets.images.galaxy1;
+	engine_ImageObject.call(this,0,0,1200.,1000,galaxy,camera,pipeline);
+	this.set_z(0);
 	kha_input_Mouse.get().notify($bind(this,this.onMouseDown),$bind(this,this.onMouseUp),$bind(this,this.onMouseMove),$bind(this,this.onMouseWheel));
 	kha_input_Keyboard.get().notify($bind(this,this.onKeyDown),$bind(this,this.onKeyUp));
 };
@@ -786,7 +771,7 @@ Scene.prototype = $extend(engine_ImageObject.prototype,{
 		return this;
 	}
 	,generateNewStars: function(count) {
-		var newStars = utils_GalaxyFactory.generateNewSpiralStar(count,1000,Reflect.field(this.settings,"typeStars"),this.camera,this.pipeline,this.settings);
+		var newStars = utils_GalaxyFactory.generateNewSpiralStar(count,2000,Reflect.field(this.settings,"typeStars"),this.camera,this.pipeline,this.settings);
 		var _g = 0;
 		while(_g < newStars.length) {
 			var star = newStars[_g];
@@ -890,8 +875,9 @@ var Star = function(x,y,rotation,radius,mass,type,camera,pipeline) {
 	this.mass = mass;
 	this.type = type;
 	this.image = utils_DynamicImageFactory.getTexture(type,camera.get_distance(),null);
-	engine_ImageObject.call(this,x,y,radius,radius,this.image,camera,pipeline);
+	engine_ImageObject.call(this,x,y,radius * 2,radius * 2,this.image,camera,pipeline);
 	this.set_rotation(rotation);
+	this.set_z(0.1);
 };
 $hxClasses["Star"] = Star;
 Star.__name__ = true;
@@ -905,32 +891,7 @@ Star.prototype = $extend(engine_ImageObject.prototype,{
 	}
 	,set_rotation: function(v) {
 		this.rotation = v;
-		this.updateView();
 		return v;
-	}
-	,updateView: function() {
-		engine_ImageObject.prototype.updateView.call(this);
-		var _this = this.model;
-		var alpha = this.get_rotation();
-		var ca = Math.cos(alpha);
-		var sa = Math.sin(alpha);
-		var m__00 = ca;
-		var m__10 = -sa;
-		var m__20 = 0;
-		var m__30 = 0;
-		var m__01 = sa;
-		var m__11 = ca;
-		var m__21 = 0;
-		var m__31 = 0;
-		var m__02 = 0;
-		var m__12 = 0;
-		var m__22 = 1;
-		var m__32 = 0;
-		var m__03 = 0;
-		var m__13 = 0;
-		var m__23 = 0;
-		var m__33 = 1;
-		this.model = new kha_math_FastMatrix4(_this._00 * m__00 + _this._10 * m__01 + _this._20 * m__02 + _this._30 * m__03,_this._00 * m__10 + _this._10 * m__11 + _this._20 * m__12 + _this._30 * m__13,_this._00 * m__20 + _this._10 * m__21 + _this._20 * m__22 + _this._30 * m__23,_this._00 * m__30 + _this._10 * m__31 + _this._20 * m__32 + _this._30 * m__33,_this._01 * m__00 + _this._11 * m__01 + _this._21 * m__02 + _this._31 * m__03,_this._01 * m__10 + _this._11 * m__11 + _this._21 * m__12 + _this._31 * m__13,_this._01 * m__20 + _this._11 * m__21 + _this._21 * m__22 + _this._31 * m__23,_this._01 * m__30 + _this._11 * m__31 + _this._21 * m__32 + _this._31 * m__33,_this._02 * m__00 + _this._12 * m__01 + _this._22 * m__02 + _this._32 * m__03,_this._02 * m__10 + _this._12 * m__11 + _this._22 * m__12 + _this._32 * m__13,_this._02 * m__20 + _this._12 * m__21 + _this._22 * m__22 + _this._32 * m__23,_this._02 * m__30 + _this._12 * m__31 + _this._22 * m__32 + _this._32 * m__33,_this._03 * m__00 + _this._13 * m__01 + _this._23 * m__02 + _this._33 * m__03,_this._03 * m__10 + _this._13 * m__11 + _this._23 * m__12 + _this._33 * m__13,_this._03 * m__20 + _this._13 * m__21 + _this._23 * m__22 + _this._33 * m__23,_this._03 * m__30 + _this._13 * m__31 + _this._23 * m__32 + _this._33 * m__33);
 	}
 	,update: function(currentTime) {
 		this.image = utils_DynamicImageFactory.getTexture(this.type,this.camera.get_distance(),this.image);
@@ -1060,34 +1021,147 @@ UInt.toFloat = function(this1) {
 		return int + 0.0;
 	}
 };
-var engine_BatchRender = function(pipeline,camera) {
-	this.textureVertices = new haxe_ds_ObjectMap();
-	this.indexBuffer = pipeline.get_indexBuffer();
-	this.textureID = pipeline.get_state().getTextureUnit("myTextureSampler");
+var engine_InstancedRender = function(pipeline,camera) {
+	this.textureViewData = new haxe_ds_ObjectMap();
+	this.textureID = pipeline.get_state().getTextureUnit("utexture");
 	this.pipeline = pipeline;
+	this.view = new kha_math_FastMatrix4(1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1);
 	this.camera = camera;
 };
-$hxClasses["engine.BatchRender"] = engine_BatchRender;
-engine_BatchRender.__name__ = true;
-engine_BatchRender.prototype = {
-	textureVertices: null
-	,indexBuffer: null
+$hxClasses["engine.InstancedRender"] = engine_InstancedRender;
+engine_InstancedRender.__name__ = true;
+engine_InstancedRender.__interfaces__ = [engine_IUpdatable,engine_IDrawable];
+engine_InstancedRender.prototype = {
+	textureViewData: null
 	,textureID: null
 	,pipeline: null
-	,vertexBuffer: null
+	,view: null
 	,camera: null
-	,add: function(image,vertices) {
-		if(this.textureVertices.h[image.__id__] == null) {
-			this.textureVertices.set(image,[]);
+	,drawCallCount: null
+	,get_drawCallCount: function() {
+		return this.drawCallCount;
+	}
+	,objectCalledCount: null
+	,get_objectCalledCount: function() {
+		return this.objectCalledCount;
+	}
+	,add: function(image,data) {
+		if(this.textureViewData.h[image.__id__] == null) {
+			this.textureViewData.set(image,[]);
 		}
-		var vert = this.textureVertices.h[image.__id__];
-		vert.push(vertices);
-		this.textureVertices.set(image,vert);
+		var vd = this.textureViewData.h[image.__id__];
+		vd.push(data);
+		this.textureViewData.set(image,vd);
 	}
-	,render: function(g4) {
-		return;
+	,update: function(currentTime) {
+		this.view = new kha_math_FastMatrix4(1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1);
+		var _this = this.view;
+		var m = this.camera.projection;
+		this.view = new kha_math_FastMatrix4(_this._00 * m._00 + _this._10 * m._01 + _this._20 * m._02 + _this._30 * m._03,_this._00 * m._10 + _this._10 * m._11 + _this._20 * m._12 + _this._30 * m._13,_this._00 * m._20 + _this._10 * m._21 + _this._20 * m._22 + _this._30 * m._23,_this._00 * m._30 + _this._10 * m._31 + _this._20 * m._32 + _this._30 * m._33,_this._01 * m._00 + _this._11 * m._01 + _this._21 * m._02 + _this._31 * m._03,_this._01 * m._10 + _this._11 * m._11 + _this._21 * m._12 + _this._31 * m._13,_this._01 * m._20 + _this._11 * m._21 + _this._21 * m._22 + _this._31 * m._23,_this._01 * m._30 + _this._11 * m._31 + _this._21 * m._32 + _this._31 * m._33,_this._02 * m._00 + _this._12 * m._01 + _this._22 * m._02 + _this._32 * m._03,_this._02 * m._10 + _this._12 * m._11 + _this._22 * m._12 + _this._32 * m._13,_this._02 * m._20 + _this._12 * m._21 + _this._22 * m._22 + _this._32 * m._23,_this._02 * m._30 + _this._12 * m._31 + _this._22 * m._32 + _this._32 * m._33,_this._03 * m._00 + _this._13 * m._01 + _this._23 * m._02 + _this._33 * m._03,_this._03 * m._10 + _this._13 * m._11 + _this._23 * m._12 + _this._33 * m._13,_this._03 * m._20 + _this._13 * m._21 + _this._23 * m._22 + _this._33 * m._23,_this._03 * m._30 + _this._13 * m._31 + _this._23 * m._32 + _this._33 * m._33);
+		var _this = this.view;
+		var m = this.camera.view;
+		this.view = new kha_math_FastMatrix4(_this._00 * m._00 + _this._10 * m._01 + _this._20 * m._02 + _this._30 * m._03,_this._00 * m._10 + _this._10 * m._11 + _this._20 * m._12 + _this._30 * m._13,_this._00 * m._20 + _this._10 * m._21 + _this._20 * m._22 + _this._30 * m._23,_this._00 * m._30 + _this._10 * m._31 + _this._20 * m._32 + _this._30 * m._33,_this._01 * m._00 + _this._11 * m._01 + _this._21 * m._02 + _this._31 * m._03,_this._01 * m._10 + _this._11 * m._11 + _this._21 * m._12 + _this._31 * m._13,_this._01 * m._20 + _this._11 * m._21 + _this._21 * m._22 + _this._31 * m._23,_this._01 * m._30 + _this._11 * m._31 + _this._21 * m._32 + _this._31 * m._33,_this._02 * m._00 + _this._12 * m._01 + _this._22 * m._02 + _this._32 * m._03,_this._02 * m._10 + _this._12 * m._11 + _this._22 * m._12 + _this._32 * m._13,_this._02 * m._20 + _this._12 * m._21 + _this._22 * m._22 + _this._32 * m._23,_this._02 * m._30 + _this._12 * m._31 + _this._22 * m._32 + _this._32 * m._33,_this._03 * m._00 + _this._13 * m._01 + _this._23 * m._02 + _this._33 * m._03,_this._03 * m._10 + _this._13 * m._11 + _this._23 * m._12 + _this._33 * m._13,_this._03 * m._20 + _this._13 * m._21 + _this._23 * m._22 + _this._33 * m._23,_this._03 * m._30 + _this._13 * m._31 + _this._23 * m._32 + _this._33 * m._33);
 	}
-	,__class__: engine_BatchRender
+	,render: function(g4,batch) {
+		var indexBuffer = this.pipeline.get_indexBuffer();
+		this.drawCallCount = 0;
+		this.objectCalledCount = 0;
+		var image = this.textureViewData.keys();
+		while(image.hasNext()) {
+			var image1 = image.next();
+			var dataView = this.textureViewData.h[image1.__id__];
+			if(dataView.length == 0) {
+				continue;
+			}
+			this.objectCalledCount = this.get_objectCalledCount() + dataView.length;
+			var buffs = [this.pipeline.get_vertexBuffer()];
+			var vertexBuffer2 = new kha_graphics4_VertexBuffer(dataView.length,this.pipeline.get_structureModel(),0,1);
+			var mData = vertexBuffer2.lock();
+			var _g = 0;
+			var _g1 = dataView.length;
+			while(_g < _g1) {
+				var i = _g++;
+				var pos = dataView[i].position;
+				var _this = this.view;
+				var m__00 = 1;
+				var m__10 = 0;
+				var m__20 = 0;
+				var m__30 = pos.x;
+				var m__01 = 0;
+				var m__11 = 1;
+				var m__21 = 0;
+				var m__31 = pos.y;
+				var m__02 = 0;
+				var m__12 = 0;
+				var m__22 = 1;
+				var m__32 = pos.z;
+				var m__03 = 0;
+				var m__13 = 0;
+				var m__23 = 0;
+				var m__33 = 1;
+				var mvp = new kha_math_FastMatrix4(_this._00 * m__00 + _this._10 * m__01 + _this._20 * m__02 + _this._30 * m__03,_this._00 * m__10 + _this._10 * m__11 + _this._20 * m__12 + _this._30 * m__13,_this._00 * m__20 + _this._10 * m__21 + _this._20 * m__22 + _this._30 * m__23,_this._00 * m__30 + _this._10 * m__31 + _this._20 * m__32 + _this._30 * m__33,_this._01 * m__00 + _this._11 * m__01 + _this._21 * m__02 + _this._31 * m__03,_this._01 * m__10 + _this._11 * m__11 + _this._21 * m__12 + _this._31 * m__13,_this._01 * m__20 + _this._11 * m__21 + _this._21 * m__22 + _this._31 * m__23,_this._01 * m__30 + _this._11 * m__31 + _this._21 * m__32 + _this._31 * m__33,_this._02 * m__00 + _this._12 * m__01 + _this._22 * m__02 + _this._32 * m__03,_this._02 * m__10 + _this._12 * m__11 + _this._22 * m__12 + _this._32 * m__13,_this._02 * m__20 + _this._12 * m__21 + _this._22 * m__22 + _this._32 * m__23,_this._02 * m__30 + _this._12 * m__31 + _this._22 * m__32 + _this._32 * m__33,_this._03 * m__00 + _this._13 * m__01 + _this._23 * m__02 + _this._33 * m__03,_this._03 * m__10 + _this._13 * m__11 + _this._23 * m__12 + _this._33 * m__13,_this._03 * m__20 + _this._13 * m__21 + _this._23 * m__22 + _this._33 * m__23,_this._03 * m__30 + _this._13 * m__31 + _this._23 * m__32 + _this._33 * m__33);
+				var m__001 = dataView[i].size.x;
+				var m__101 = 0;
+				var m__201 = 0;
+				var m__301 = 0;
+				var m__011 = 0;
+				var m__111 = dataView[i].size.y;
+				var m__211 = 0;
+				var m__311 = 0;
+				var m__021 = 0;
+				var m__121 = 0;
+				var m__221 = 1;
+				var m__321 = 0;
+				var m__031 = 0;
+				var m__131 = 0;
+				var m__231 = 0;
+				var m__331 = 1;
+				mvp = new kha_math_FastMatrix4(mvp._00 * m__001 + mvp._10 * m__011 + mvp._20 * m__021 + mvp._30 * m__031,mvp._00 * m__101 + mvp._10 * m__111 + mvp._20 * m__121 + mvp._30 * m__131,mvp._00 * m__201 + mvp._10 * m__211 + mvp._20 * m__221 + mvp._30 * m__231,mvp._00 * m__301 + mvp._10 * m__311 + mvp._20 * m__321 + mvp._30 * m__331,mvp._01 * m__001 + mvp._11 * m__011 + mvp._21 * m__021 + mvp._31 * m__031,mvp._01 * m__101 + mvp._11 * m__111 + mvp._21 * m__121 + mvp._31 * m__131,mvp._01 * m__201 + mvp._11 * m__211 + mvp._21 * m__221 + mvp._31 * m__231,mvp._01 * m__301 + mvp._11 * m__311 + mvp._21 * m__321 + mvp._31 * m__331,mvp._02 * m__001 + mvp._12 * m__011 + mvp._22 * m__021 + mvp._32 * m__031,mvp._02 * m__101 + mvp._12 * m__111 + mvp._22 * m__121 + mvp._32 * m__131,mvp._02 * m__201 + mvp._12 * m__211 + mvp._22 * m__221 + mvp._32 * m__231,mvp._02 * m__301 + mvp._12 * m__311 + mvp._22 * m__321 + mvp._32 * m__331,mvp._03 * m__001 + mvp._13 * m__011 + mvp._23 * m__021 + mvp._33 * m__031,mvp._03 * m__101 + mvp._13 * m__111 + mvp._23 * m__121 + mvp._33 * m__131,mvp._03 * m__201 + mvp._13 * m__211 + mvp._23 * m__221 + mvp._33 * m__231,mvp._03 * m__301 + mvp._13 * m__311 + mvp._23 * m__321 + mvp._33 * m__331);
+				var v = mvp._00;
+				mData.setFloat32(i * 16 * 4,v,true);
+				var v1 = mvp._01;
+				mData.setFloat32((i * 16 + 1) * 4,v1,true);
+				var v2 = mvp._02;
+				mData.setFloat32((i * 16 + 2) * 4,v2,true);
+				var v3 = mvp._03;
+				mData.setFloat32((i * 16 + 3) * 4,v3,true);
+				var v4 = mvp._10;
+				mData.setFloat32((i * 16 + 4) * 4,v4,true);
+				var v5 = mvp._11;
+				mData.setFloat32((i * 16 + 5) * 4,v5,true);
+				var v6 = mvp._12;
+				mData.setFloat32((i * 16 + 6) * 4,v6,true);
+				var v7 = mvp._13;
+				mData.setFloat32((i * 16 + 7) * 4,v7,true);
+				var v8 = mvp._20;
+				mData.setFloat32((i * 16 + 8) * 4,v8,true);
+				var v9 = mvp._21;
+				mData.setFloat32((i * 16 + 9) * 4,v9,true);
+				var v10 = mvp._22;
+				mData.setFloat32((i * 16 + 10) * 4,v10,true);
+				var v11 = mvp._23;
+				mData.setFloat32((i * 16 + 11) * 4,v11,true);
+				var v12 = mvp._30;
+				mData.setFloat32((i * 16 + 12) * 4,v12,true);
+				var v13 = mvp._31;
+				mData.setFloat32((i * 16 + 13) * 4,v13,true);
+				var v14 = mvp._32;
+				mData.setFloat32((i * 16 + 14) * 4,v14,true);
+				var v15 = mvp._33;
+				mData.setFloat32((i * 16 + 15) * 4,v15,true);
+			}
+			vertexBuffer2.unlock();
+			buffs.push(vertexBuffer2);
+			g4.setTexture(this.textureID,image1);
+			g4.setVertexBuffers(buffs);
+			g4.setIndexBuffer(indexBuffer);
+			g4.drawIndexedVerticesInstanced(dataView.length,0,indexBuffer.count());
+			this.drawCallCount = this.get_drawCallCount() + 1;
+			this.textureViewData.remove(image1);
+		}
+	}
+	,__class__: engine_InstancedRender
+	,__properties__: {get_objectCalledCount:"get_objectCalledCount",get_drawCallCount:"get_drawCallCount"}
 };
 var haxe_StackItem = $hxEnums["haxe.StackItem"] = { __ename__:true,__constructs__:null
 	,CFunction: {_hx_name:"CFunction",_hx_index:0,__enum__:"haxe.StackItem",toString:$estr}
@@ -2025,6 +2099,24 @@ haxe_ds_ObjectMap.prototype = {
 		this.h[id] = value;
 		this.h.__keys__[id] = key;
 	}
+	,remove: function(key) {
+		var id = key.__id__;
+		if(this.h.__keys__[id] == null) {
+			return false;
+		}
+		delete(this.h[id]);
+		delete(this.h.__keys__[id]);
+		return true;
+	}
+	,keys: function() {
+		var a = [];
+		for( var key in this.h.__keys__ ) {
+		if(this.h.hasOwnProperty(key)) {
+			a.push(this.h.__keys__[key]);
+		}
+		}
+		return new haxe_iterators_ArrayIterator(a);
+	}
 	,__class__: haxe_ds_ObjectMap
 };
 var haxe_ds_StringMap = function() {
@@ -2602,7 +2694,7 @@ kha__$Assets_AssetData._get = function(this1,key) {
 	return Reflect.getProperty(this1,key);
 };
 var kha__$Assets_ImageList = function() {
-	this.names = ["blue_gigant_high","blue_gigant_low","brown_dwarf_high","brown_dwarf_low","galaxy","red_gigant_high","red_gigant_low","white_dwarf_high","white_dwarf_low"];
+	this.names = ["blue_gigant_high","blue_gigant_low","brown_dwarf_high","brown_dwarf_low","galaxy1","red_gigant_high","red_gigant_low","white_dwarf_high","white_dwarf_low"];
 	this.white_dwarf_lowSize = 1502;
 	this.white_dwarf_lowDescription = { name : "white_dwarf_low", original_height : 26, file_sizes : [1502], original_width : 25, files : ["white_dwarf_low.png"], type : "image"};
 	this.white_dwarf_lowName = "white_dwarf_low";
@@ -2619,10 +2711,10 @@ var kha__$Assets_ImageList = function() {
 	this.red_gigant_highDescription = { name : "red_gigant_high", original_height : 192, file_sizes : [58587], original_width : 196, files : ["red_gigant_high.png"], type : "image"};
 	this.red_gigant_highName = "red_gigant_high";
 	this.red_gigant_high = null;
-	this.galaxySize = 715780;
-	this.galaxyDescription = { name : "galaxy", original_height : 2160, file_sizes : [715780], original_width : 2540, files : ["galaxy.jpg"], type : "image"};
-	this.galaxyName = "galaxy";
-	this.galaxy = null;
+	this.galaxy1Size = 715780;
+	this.galaxy1Description = { name : "galaxy1", original_height : 2160, file_sizes : [715780], original_width : 2540, files : ["galaxy1.jpg"], type : "image"};
+	this.galaxy1Name = "galaxy1";
+	this.galaxy1 = null;
 	this.brown_dwarf_lowSize = 1932;
 	this.brown_dwarf_lowDescription = { name : "brown_dwarf_low", original_height : 25, file_sizes : [1932], original_width : 25, files : ["brown_dwarf_low.png"], type : "image"};
 	this.brown_dwarf_lowName = "brown_dwarf_low";
@@ -2698,18 +2790,18 @@ kha__$Assets_ImageList.prototype = {
 		this.brown_dwarf_low.unload();
 		this.brown_dwarf_low = null;
 	}
-	,galaxy: null
-	,galaxyName: null
-	,galaxyDescription: null
-	,galaxySize: null
-	,galaxyLoad: function(done,failure) {
-		kha_Assets.loadImage("galaxy",function(image) {
+	,galaxy1: null
+	,galaxy1Name: null
+	,galaxy1Description: null
+	,galaxy1Size: null
+	,galaxy1Load: function(done,failure) {
+		kha_Assets.loadImage("galaxy1",function(image) {
 			done();
-		},failure,{ fileName : "kha/internal/AssetsBuilder.hx", lineNumber : 142, className : "kha._Assets.ImageList", methodName : "galaxyLoad"});
+		},failure,{ fileName : "kha/internal/AssetsBuilder.hx", lineNumber : 142, className : "kha._Assets.ImageList", methodName : "galaxy1Load"});
 	}
-	,galaxyUnload: function() {
-		this.galaxy.unload();
-		this.galaxy = null;
+	,galaxy1Unload: function() {
+		this.galaxy1.unload();
+		this.galaxy1 = null;
 	}
 	,red_gigant_high: null
 	,red_gigant_highName: null
@@ -32561,10 +32653,48 @@ ui_Button.prototype = {
 	}
 	,__class__: ui_Button
 };
-var ui_UI = function(space,settings) {
+var ui_InfoPanel = function(x,y) {
+	this.texts = [];
+	this.x = x;
+	this.y = y;
+};
+$hxClasses["ui.InfoPanel"] = ui_InfoPanel;
+ui_InfoPanel.__name__ = true;
+ui_InfoPanel.prototype = {
+	x: null
+	,y: null
+	,width: null
+	,height: null
+	,texts: null
+	,addText: function(text) {
+		this.texts.push(text);
+		this.height = this.texts.length * 26;
+		this.width = Lambda.fold(this.texts,function(text,current) {
+			return Math.max(text.length * 12,current);
+		},0);
+	}
+	,render: function(g) {
+		g.set_color(kha_Color.fromFloats(0,0,0,0.5));
+		g.fillRect(0,0,this.width,this.height);
+		g.set_color(-16711936);
+		g.set_font(kha_Assets.fonts.RussoOne_Regular);
+		g.set_fontSize(25);
+		var _g = 0;
+		var _g1 = this.texts.length;
+		while(_g < _g1) {
+			var i = _g++;
+			g.drawString(this.texts[i],this.x,this.y + i * 25);
+		}
+		this.texts = [];
+	}
+	,__class__: ui_InfoPanel
+};
+var ui_UI = function(space,settings,render) {
 	this.space = space;
 	this.frameCount = 0;
+	this.instRender = render;
 	this.seed = Std.string(Reflect.field(settings,"seed"));
+	this.infoPanel = new ui_InfoPanel(0,0);
 	this.add10kStarsButton = new ui_Button(10,70,110,30,-256,"+10000",function() {
 		space.generateNewStars(10000);
 	});
@@ -32580,6 +32710,8 @@ ui_UI.prototype = {
 	,fps: null
 	,space: null
 	,seed: null
+	,instRender: null
+	,infoPanel: null
 	,add1kStarsButton: null
 	,add10kStarsButton: null
 	,fpsCount: function() {
@@ -32587,19 +32719,17 @@ ui_UI.prototype = {
 		this.frameCount = 0;
 	}
 	,render: function(g) {
-		g.set_color(-16777216);
-		g.fillRect(0,0,400,27);
-		g.set_color(-16711936);
-		g.set_font(kha_Assets.fonts.RussoOne_Regular);
-		g.set_fontSize(30);
-		var info = "FPS: " + this.fps + " STARS: " + utils_GalaxyFactory.allStarsInGalaxy.length + " SEED:" + this.seed;
-		g.drawString(info,0,0);
-		g.set_color(-16777216);
-		g.fillRect(0,25,800,27);
-		g.set_color(-65281);
-		var control = "CONTROL Keyboard: <, >, v, ^, w, s   Mouse: drag and drop, wheel";
-		g.drawString(control,0,25);
+		this.infoPanel.addText("FPS: " + this.fps);
+		this.infoPanel.addText("STARS: " + utils_GalaxyFactory.allStarsInGalaxy.length);
+		this.infoPanel.addText("SEED:" + this.seed);
+		this.infoPanel.addText("Frustum Call: " + this.instRender.get_objectCalledCount());
+		this.infoPanel.addText("DrawCall: " + this.instRender.get_drawCallCount());
+		this.infoPanel.addText("CONTROL Keyboard: <, >, v, ^, w, s");
+		this.infoPanel.addText("CONTROL Mouse: drag and drop, wheel");
+		this.infoPanel.render(g);
+		this.add10kStarsButton.y = this.infoPanel.height + 20;
 		this.add10kStarsButton.render(g);
+		this.add1kStarsButton.y = this.add10kStarsButton.y + this.add10kStarsButton.height + 20;
 		this.add1kStarsButton.render(g);
 		this.frameCount++;
 	}
@@ -32679,9 +32809,10 @@ utils_GalaxyFactory.generateNewSpiralStar = function(totalStars,galaxyRadius,typ
 		var newStarParam = null;
 		attempt = 0;
 		do {
-			newStarParam = utils_GalaxyFactory.createStar(a,b,index,totalStars,armCount,Math.floor(16 * Math.exp(-0.05 * attempt) + 2));
+			newStarParam = utils_GalaxyFactory.createStar(a,b,index,totalStars,armCount,Math.floor(14 * Math.exp(-0.05 * attempt) + 1),attempt);
 			++attempt;
-		} while(utils_GalaxyFactory.isColliding(newStarParam) && attempt < 250);
+		} while(utils_GalaxyFactory.isColliding(newStarParam) && attempt < 100);
+		haxe_Log.trace(attempt,{ fileName : "utils/GalaxyFactory.hx", lineNumber : 39, className : "utils.GalaxyFactory", methodName : "generateNewSpiralStar"});
 		var starType = null;
 		var mass = 0;
 		do {
@@ -32702,22 +32833,22 @@ utils_GalaxyFactory.generateNewSpiralStar = function(totalStars,galaxyRadius,typ
 	}
 	return newStars;
 };
-utils_GalaxyFactory.createStar = function(a,b,index,totalStars,armCount,maxStarRadius) {
+utils_GalaxyFactory.createStar = function(a,b,index,totalStars,armCount,maxStarRadius,attempt) {
 	var theta = index / totalStars * Math.PI * 4;
-	var r = Math.max(kha_System.windowHeight(0),kha_System.windowWidth(0)) * Main.random.GetFloatIn(0,1) * (Math.exp(b * theta) * a);
+	var r = 600 * Main.random.GetFloatIn(0,1) * (Math.exp(b * theta) * a) * (1 + Math.pow(attempt,2));
 	var angleOffset = index % armCount * (Math.PI * 2 / armCount) + 0.1 * Math.PI * Main.random.GetFloatIn(0,1);
 	var x = r * Math.cos(theta + angleOffset);
 	var y = r * Math.sin(theta + angleOffset);
-	var starRadius = Main.random.GetFloatIn(0,maxStarRadius) + 1;
+	var starRadius = Main.random.GetFloatIn(0,maxStarRadius) + 2;
 	var rotation = Main.random.GetFloatIn(0,360);
-	return new kha_math_Vector4(x,y,starRadius,rotation);
+	return new kha_math_FastVector4(x,y,starRadius,rotation);
 };
 utils_GalaxyFactory.isColliding = function(newStar) {
 	return Lambda.exists(utils_GalaxyFactory.allStarsInGalaxy,function(star) {
 		var dx = star.get_x() - newStar.x;
 		var dy = star.get_y() - newStar.y;
 		var distance = dx * dx + dy * dy;
-		var minDistance = star.get_width() + newStar.z;
+		var minDistance = star.get_width() + newStar.z * 2;
 		return distance < minDistance * minDistance;
 	});
 };
@@ -32747,6 +32878,8 @@ if(ArrayBuffer.prototype.slice == null) {
 }
 Camera.MAX_DISTANCE = 100;
 Camera.ANGLE_PERSPECTIVE = 45.0;
+Camera.BASE_RESOLUTION_WIDTH = 1000;
+Camera.BASE_RESOLUTION_HEIGHT = 1000;
 Main.fps = 0;
 Star.RED_GIGANT = 30;
 Star.BLUE_GIGANT = 35;
@@ -32805,12 +32938,12 @@ kha_Shaders.painter_video_fragData2 = "s444:I3ZlcnNpb24gMTAwCnByZWNpc2lvbiBtZWRp
 kha_Shaders.painter_video_vertData0 = "s407:I3ZlcnNpb24gMTAwCgp1bmlmb3JtIG1hdDQgcHJvamVjdGlvbk1hdHJpeDsKCmF0dHJpYnV0ZSB2ZWMzIHZlcnRleFBvc2l0aW9uOwp2YXJ5aW5nIHZlYzIgdGV4Q29vcmQ7CmF0dHJpYnV0ZSB2ZWMyIHZlcnRleFVWOwp2YXJ5aW5nIHZlYzQgY29sb3I7CmF0dHJpYnV0ZSB2ZWM0IHZlcnRleENvbG9yOwoKdm9pZCBtYWluKCkKewogICAgZ2xfUG9zaXRpb24gPSBwcm9qZWN0aW9uTWF0cml4ICogdmVjNCh2ZXJ0ZXhQb3NpdGlvbiwgMS4wKTsKICAgIHRleENvb3JkID0gdmVydGV4VVY7CiAgICBjb2xvciA9IHZlcnRleENvbG9yOwp9Cgo";
 kha_Shaders.painter_video_vertData1 = "s372:I3ZlcnNpb24gMzAwIGVzCgp1bmlmb3JtIG1hdDQgcHJvamVjdGlvbk1hdHJpeDsKCmluIHZlYzMgdmVydGV4UG9zaXRpb247Cm91dCB2ZWMyIHRleENvb3JkOwppbiB2ZWMyIHZlcnRleFVWOwpvdXQgdmVjNCBjb2xvcjsKaW4gdmVjNCB2ZXJ0ZXhDb2xvcjsKCnZvaWQgbWFpbigpCnsKICAgIGdsX1Bvc2l0aW9uID0gcHJvamVjdGlvbk1hdHJpeCAqIHZlYzQodmVydGV4UG9zaXRpb24sIDEuMCk7CiAgICB0ZXhDb29yZCA9IHZlcnRleFVWOwogICAgY29sb3IgPSB2ZXJ0ZXhDb2xvcjsKfQoK";
 kha_Shaders.painter_video_vertData2 = "s471:I3ZlcnNpb24gMTAwCgp1bmlmb3JtIG1lZGl1bXAgbWF0NCBwcm9qZWN0aW9uTWF0cml4OwoKYXR0cmlidXRlIG1lZGl1bXAgdmVjMyB2ZXJ0ZXhQb3NpdGlvbjsKdmFyeWluZyBtZWRpdW1wIHZlYzIgdGV4Q29vcmQ7CmF0dHJpYnV0ZSBtZWRpdW1wIHZlYzIgdmVydGV4VVY7CnZhcnlpbmcgbWVkaXVtcCB2ZWM0IGNvbG9yOwphdHRyaWJ1dGUgbWVkaXVtcCB2ZWM0IHZlcnRleENvbG9yOwoKdm9pZCBtYWluKCkKewogICAgZ2xfUG9zaXRpb24gPSBwcm9qZWN0aW9uTWF0cml4ICogdmVjNCh2ZXJ0ZXhQb3NpdGlvbiwgMS4wKTsKICAgIHRleENvb3JkID0gdmVydGV4VVY7CiAgICBjb2xvciA9IHZlcnRleENvbG9yOwp9Cgo";
-kha_Shaders.simple_fragData0 = "s411:I3ZlcnNpb24gMTAwCnByZWNpc2lvbiBtZWRpdW1wIGZsb2F0OwpwcmVjaXNpb24gaGlnaHAgaW50OwoKdW5pZm9ybSBoaWdocCBzYW1wbGVyMkQgbXlUZXh0dXJlU2FtcGxlcjsKCnZhcnlpbmcgaGlnaHAgdmVjMiB2VVY7Cgp2b2lkIG1haW4oKQp7CiAgICBoaWdocCB2ZWM0IGNvbG9yID0gdGV4dHVyZTJEKG15VGV4dHVyZVNhbXBsZXIsIHZVVik7CiAgICBpZiAoY29sb3IudyA8IDAuMTAwMDAwMDAxNDkwMTE2MTE5Mzg0NzY1NjI1KQogICAgewogICAgICAgIGRpc2NhcmQ7CiAgICB9CiAgICBnbF9GcmFnRGF0YVswXSA9IGNvbG9yOwp9Cgo";
-kha_Shaders.simple_fragData1 = "s434:I3ZlcnNpb24gMzAwIGVzCnByZWNpc2lvbiBtZWRpdW1wIGZsb2F0OwpwcmVjaXNpb24gaGlnaHAgaW50OwoKdW5pZm9ybSBoaWdocCBzYW1wbGVyMkQgbXlUZXh0dXJlU2FtcGxlcjsKCmluIGhpZ2hwIHZlYzIgdlVWOwpvdXQgaGlnaHAgdmVjNCBmcmFnQ29sb3I7Cgp2b2lkIG1haW4oKQp7CiAgICBoaWdocCB2ZWM0IGNvbG9yID0gdGV4dHVyZShteVRleHR1cmVTYW1wbGVyLCB2VVYpOwogICAgaWYgKGNvbG9yLncgPCAwLjEwMDAwMDAwMTQ5MDExNjExOTM4NDc2NTYyNSkKICAgIHsKICAgICAgICBkaXNjYXJkOwogICAgfQogICAgZnJhZ0NvbG9yID0gY29sb3I7Cn0KCg";
-kha_Shaders.simple_fragData2 = "s400:I3ZlcnNpb24gMTAwCnByZWNpc2lvbiBtZWRpdW1wIGZsb2F0OwpwcmVjaXNpb24gbWVkaXVtcCBpbnQ7Cgp1bmlmb3JtIG1lZGl1bXAgc2FtcGxlcjJEIG15VGV4dHVyZVNhbXBsZXI7Cgp2YXJ5aW5nIHZlYzIgdlVWOwoKdm9pZCBtYWluKCkKewogICAgdmVjNCBjb2xvciA9IHRleHR1cmUyRChteVRleHR1cmVTYW1wbGVyLCB2VVYpOwogICAgaWYgKGNvbG9yLncgPCAwLjEwMDAwMDAwMTQ5MDExNjExOTM4NDc2NTYyNSkKICAgIHsKICAgICAgICBkaXNjYXJkOwogICAgfQogICAgZ2xfRnJhZ0RhdGFbMF0gPSBjb2xvcjsKfQoK";
-kha_Shaders.simple_vertData0 = "s216:I3ZlcnNpb24gMTAwCgp1bmlmb3JtIG1hdDQgTVZQOwoKYXR0cmlidXRlIHZlYzMgcG9zOwp2YXJ5aW5nIHZlYzIgdlVWOwphdHRyaWJ1dGUgdmVjMiB1djsKCnZvaWQgbWFpbigpCnsKICAgIGdsX1Bvc2l0aW9uID0gTVZQICogdmVjNChwb3MsIDEuMCk7CiAgICB2VVYgPSB1djsKfQoK";
-kha_Shaders.simple_vertData1 = "s196:I3ZlcnNpb24gMzAwIGVzCgp1bmlmb3JtIG1hdDQgTVZQOwoKaW4gdmVjMyBwb3M7Cm91dCB2ZWMyIHZVVjsKaW4gdmVjMiB1djsKCnZvaWQgbWFpbigpCnsKICAgIGdsX1Bvc2l0aW9uID0gTVZQICogdmVjNChwb3MsIDEuMCk7CiAgICB2VVYgPSB1djsKfQoK";
-kha_Shaders.simple_vertData2 = "s259:I3ZlcnNpb24gMTAwCgp1bmlmb3JtIG1lZGl1bXAgbWF0NCBNVlA7CgphdHRyaWJ1dGUgbWVkaXVtcCB2ZWMzIHBvczsKdmFyeWluZyBtZWRpdW1wIHZlYzIgdlVWOwphdHRyaWJ1dGUgbWVkaXVtcCB2ZWMyIHV2OwoKdm9pZCBtYWluKCkKewogICAgZ2xfUG9zaXRpb24gPSBNVlAgKiB2ZWM0KHBvcywgMS4wKTsKICAgIHZVViA9IHV2Owp9Cgo";
+kha_Shaders.simple_fragData0 = "s388:I3ZlcnNpb24gMTAwCnByZWNpc2lvbiBtZWRpdW1wIGZsb2F0OwpwcmVjaXNpb24gaGlnaHAgaW50OwoKdW5pZm9ybSBoaWdocCBzYW1wbGVyMkQgdXRleHR1cmU7Cgp2YXJ5aW5nIGhpZ2hwIHZlYzIgdlVWOwoKdm9pZCBtYWluKCkKewogICAgaGlnaHAgdmVjNCBjb2xvciA9IHRleHR1cmUyRCh1dGV4dHVyZSwgdlVWKTsKICAgIGlmIChjb2xvci53IDwgMC4yMDAwMDAwMDI5ODAyMzIyMzg3Njk1MzEyNSkKICAgIHsKICAgICAgICBkaXNjYXJkOwogICAgfQogICAgZ2xfRnJhZ0RhdGFbMF0gPSBjb2xvcjsKfQoK";
+kha_Shaders.simple_fragData1 = "s411:I3ZlcnNpb24gMzAwIGVzCnByZWNpc2lvbiBtZWRpdW1wIGZsb2F0OwpwcmVjaXNpb24gaGlnaHAgaW50OwoKdW5pZm9ybSBoaWdocCBzYW1wbGVyMkQgdXRleHR1cmU7CgppbiBoaWdocCB2ZWMyIHZVVjsKb3V0IGhpZ2hwIHZlYzQgZnJhZ0NvbG9yOwoKdm9pZCBtYWluKCkKewogICAgaGlnaHAgdmVjNCBjb2xvciA9IHRleHR1cmUodXRleHR1cmUsIHZVVik7CiAgICBpZiAoY29sb3IudyA8IDAuMjAwMDAwMDAyOTgwMjMyMjM4NzY5NTMxMjUpCiAgICB7CiAgICAgICAgZGlzY2FyZDsKICAgIH0KICAgIGZyYWdDb2xvciA9IGNvbG9yOwp9Cgo";
+kha_Shaders.simple_fragData2 = "s378:I3ZlcnNpb24gMTAwCnByZWNpc2lvbiBtZWRpdW1wIGZsb2F0OwpwcmVjaXNpb24gbWVkaXVtcCBpbnQ7Cgp1bmlmb3JtIG1lZGl1bXAgc2FtcGxlcjJEIHV0ZXh0dXJlOwoKdmFyeWluZyB2ZWMyIHZVVjsKCnZvaWQgbWFpbigpCnsKICAgIHZlYzQgY29sb3IgPSB0ZXh0dXJlMkQodXRleHR1cmUsIHZVVik7CiAgICBpZiAoY29sb3IudyA8IDAuMjAwMDAwMDAyOTgwMjMyMjM4NzY5NTMxMjUpCiAgICB7CiAgICAgICAgZGlzY2FyZDsKICAgIH0KICAgIGdsX0ZyYWdEYXRhWzBdID0gY29sb3I7Cn0KCg";
+kha_Shaders.simple_vertData0 = "s218:I3ZlcnNpb24gMTAwCgphdHRyaWJ1dGUgbWF0NCBNVlA7CmF0dHJpYnV0ZSB2ZWMzIHBvczsKdmFyeWluZyB2ZWMyIHZVVjsKYXR0cmlidXRlIHZlYzIgdXY7Cgp2b2lkIG1haW4oKQp7CiAgICBnbF9Qb3NpdGlvbiA9IE1WUCAqIHZlYzQocG9zLCAxLjApOwogICAgdlVWID0gdXY7Cn0KCg";
+kha_Shaders.simple_vertData1 = "s188:I3ZlcnNpb24gMzAwIGVzCgppbiBtYXQ0IE1WUDsKaW4gdmVjMyBwb3M7Cm91dCB2ZWMyIHZVVjsKaW4gdmVjMiB1djsKCnZvaWQgbWFpbigpCnsKICAgIGdsX1Bvc2l0aW9uID0gTVZQICogdmVjNChwb3MsIDEuMCk7CiAgICB2VVYgPSB1djsKfQoK";
+kha_Shaders.simple_vertData2 = "s260:I3ZlcnNpb24gMTAwCgphdHRyaWJ1dGUgbWVkaXVtcCBtYXQ0IE1WUDsKYXR0cmlidXRlIG1lZGl1bXAgdmVjMyBwb3M7CnZhcnlpbmcgbWVkaXVtcCB2ZWMyIHZVVjsKYXR0cmlidXRlIG1lZGl1bXAgdmVjMiB1djsKCnZvaWQgbWFpbigpCnsKICAgIGdsX1Bvc2l0aW9uID0gTVZQICogdmVjNChwb3MsIDEuMCk7CiAgICB2VVYgPSB1djsKfQoK";
 kha_System.renderListeners = [];
 kha_System.foregroundListeners = [];
 kha_System.resumeListeners = [];
@@ -33051,7 +33184,7 @@ kha_netsync_Session.RPC_SERVER = 0;
 kha_netsync_Session.RPC_ALL = 1;
 kha_netsync_SyncBuilder.nextId = 0;
 kha_netsync_SyncBuilder.objects = [];
-utils_DynamicImageFactory.DISTANCE_THRESHOLD = 40;
+utils_DynamicImageFactory.CAMERA_DISTANCE_THRESHOLD = 40;
 utils_DynamicImageFactory.mipmapping = new haxe_ds_StringMap();
 utils_GalaxyFactory.allStarsInGalaxy = [];
 Main.main();

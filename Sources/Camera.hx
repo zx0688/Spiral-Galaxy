@@ -1,15 +1,17 @@
 package;
 
 import engine.IResizable;
+import kha.math.FastVector2;
 import kha.math.FastVector4;
 import kha.math.FastVector3;
 import kha.math.FastMatrix4;
 import kha.System;
-import kha.math.Vector2;
 
 class Camera implements IResizable {
 	public static inline var MAX_DISTANCE: Int = 100;
 	public static inline var ANGLE_PERSPECTIVE: Float = 45.0;
+	public static inline var BASE_RESOLUTION_WIDTH: Int = 1000;
+	public static inline var BASE_RESOLUTION_HEIGHT: Int = 1000;
 
 	public var projection: FastMatrix4;
 	public var view: FastMatrix4;
@@ -17,7 +19,7 @@ class Camera implements IResizable {
 	// scope of view x, y, width, height
 	public var scope: FastVector4;
 
-	@:isVar public var position(get, set): Vector2 = new Vector2(0, 0);
+	@:isVar public var position(get, set): FastVector2 = new FastVector2(0, 0);
 
 	function get_position() {
 		return this.position;
@@ -40,7 +42,7 @@ class Camera implements IResizable {
 		if (value == this.distance)
 			return value;
 
-		value = value > 99 ? 99 : value;
+		value = value > MAX_DISTANCE ? MAX_DISTANCE : value;
 		value = value < 1 ? 1 : value;
 		this.distance = value;
 		updateView();
@@ -56,21 +58,22 @@ class Camera implements IResizable {
 	// for frustum culling
 	function scopeUpdate() {
 		var size = ConvertPointByPerspective(System.windowWidth(0), System.windowHeight(0), MAX_DISTANCE, this.distance);
-		var position = ConvertPerspectivePointToGlovalPoint(this.position.x, this.position.y, MAX_DISTANCE);
+		var glob = ConvertPerspectivePointToGlobalPoint(position.x, position.y);
 
-		scope.x = position.x;
-		scope.y = position.y;
-		scope.z = size.x;
-		scope.w = size.y;
+		scope.x = glob.x;
+		scope.y = glob.y;
+		scope.z = size.x * 1.1;
+		scope.w = size.y * 1.1;
 	}
 
 	public function new() {
 		scope = new FastVector4(0, 0, 0, 0);
+
 		projection = FastMatrix4.perspectiveProjection(ANGLE_PERSPECTIVE, System.windowWidth(0) / System.windowHeight(0), 0.1, MAX_DISTANCE);
 
 		// look at the scene from the top
-		distance = MAX_DISTANCE - 1;
-		position = new Vector2(0, 0);
+		distance = MAX_DISTANCE;
+		position = new FastVector2(0, 0);
 	}
 
 	public function resize() {
@@ -78,36 +81,45 @@ class Camera implements IResizable {
 		updateView();
 	}
 
-	public static function ConvertPointByPerspective(_x: Float, _y: Float, _distance1: Float, _distance2: Float): Vector2 {
+	public static function ConvertPointByPerspective(_x: Float, _y: Float, _distance1: Float, _distance2: Float): FastVector2 {
 		var x = (_distance2 / _distance1) * _x;
 		var y = (_distance2 / _distance1) * _y;
-		return new Vector2(x, y);
+		return new FastVector2(x, y);
 	}
 
-	public static function ConvertPerspectivePointToGlovalPoint(_x: Float, _y: Float, _distance: Float = MAX_DISTANCE): Vector2 {
-		var tan: Float = 0.41421112; // Math.tan(ANGLE_PERSPECTIVE * 0.0087266);
-		var aspectRatio = System.windowWidth(0) / System.windowHeight(0);
-		var x = (_x * System.windowHeight(0)) / (_distance * aspectRatio * tan);
-		var y = (_y * System.windowWidth(0)) / (_distance * aspectRatio * tan * aspectRatio);
-		return new Vector2(x, y);
+	public static function ConvertPerspectivePointToGlobalPoint(_x: Float, _y: Float): FastVector2 {
+		var tan: Float = 0.4142;
+		var sw = BASE_RESOLUTION_WIDTH;
+		var sh = BASE_RESOLUTION_HEIGHT;
+		var aspectRatio = sw / sh;
+
+		var h = 2 * MAX_DISTANCE * tan;
+		var w = h * aspectRatio;
+
+		var scaleFactor: Float = 0.68;
+
+		var xn = _x / (w * scaleFactor);
+		var yn = _y / (h * scaleFactor);
+
+		var x = xn * sw;
+		var y = yn * sh;
+
+		return new FastVector2(x, y);
 	}
 
-	public static function ConvertGlobalPointToPerspectivePoint(_x: Float, _y: Float, _distance: Float = MAX_DISTANCE): Vector2 {
-		var tan: Float = 0.41421112; // Math.tan(ANGLE_PERSPECTIVE * 0.0087266);
-		var aspectRatio = System.windowWidth(0) / System.windowHeight(0);
-		var x = (_distance * aspectRatio * tan * _x) / System.windowHeight(0);
-		var y = (_distance * aspectRatio * tan * aspectRatio * _y) / System.windowWidth(0);
-		return new Vector2(x, y);
-	}
+	public static function ConvertGlobalPointToPerspectivePoint(_x: Float, _y: Float): FastVector2 {
+		var tan: Float = 0.4142;
+		var sw = BASE_RESOLUTION_WIDTH;
+		var sh = BASE_RESOLUTION_HEIGHT;
+		var aspectRation = sw / sh;
+		var h = 2 * MAX_DISTANCE * tan;
+		var w = h * aspectRation;
 
-	public static function GenerateVertixForImageGlobalSize(_width: Float, _height: Float): Array<Float> {
-		var pos = ConvertGlobalPointToPerspectivePoint(_width, _height);
-		var height = pos.y;
-		var width = pos.x;
+		var xn = (_x / sw) * 0.68;
+		var yn = (_y / sh) * 0.68;
+		var x = xn * w;
+		var y = yn * h;
 
-		var vertices: Array<Float> = [
-			-width, -height, 0.0, 0.0, 1.0, width, -height, 0.0, 1.0, 1.0, width, height, 0.0, 1.0, 0.0, -width, height, 0.0, 0.0, 0.0, 0.0
-		];
-		return vertices;
+		return new FastVector2(x, y);
 	}
 }

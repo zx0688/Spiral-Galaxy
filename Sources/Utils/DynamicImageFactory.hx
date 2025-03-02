@@ -16,7 +16,7 @@ import kha.System;
 import kha.math.FastMatrix3;
 
 class DynamicImageFactory {
-	public static inline var DISTANCE_THRESHOLD: Int = 40;
+	public static inline var CAMERA_DISTANCE_THRESHOLD: Int = 40;
 
 	// name - texture
 	// low and high resolution
@@ -34,7 +34,7 @@ class DynamicImageFactory {
 		if (list == null)
 			return image;
 
-		if (cameraDistance > DISTANCE_THRESHOLD)
+		if (cameraDistance > CAMERA_DISTANCE_THRESHOLD)
 			return list[0];
 		else
 			return list[1];

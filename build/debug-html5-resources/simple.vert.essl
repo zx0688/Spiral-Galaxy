@@ -1,7 +1,6 @@
 #version 100
 
-uniform mat4 MVP;
-
+attribute mat4 MVP;
 attribute vec3 pos;
 varying vec2 vUV;
 attribute vec2 uv;

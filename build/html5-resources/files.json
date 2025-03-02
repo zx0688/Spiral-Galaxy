@@ -59,9 +59,9 @@
 			"original_height": 25
 		},
 		{
-			"name": "galaxy",
+			"name": "galaxy1",
 			"files": [
-				"galaxy.jpg"
+				"galaxy1.jpg"
 			],
 			"file_sizes": [
 				715780
@@ -544,7 +544,7 @@
 			],
 			"uniforms": [
 				{
-					"name": "myTextureSampler",
+					"name": "utexture",
 					"type": "sampler2D"
 				}
 			],
@@ -562,6 +562,10 @@
 			],
 			"type": "shader",
 			"inputs": [
+				{
+					"name": "MVP",
+					"type": "mat4"
+				},
 				{
 					"name": "pos",
 					"type": "vec3"
@@ -585,12 +589,7 @@
 					"type": "vec2"
 				}
 			],
-			"uniforms": [
-				{
-					"name": "MVP",
-					"type": "mat4"
-				}
-			],
+			"uniforms": [],
 			"types": [
 				{
 					"name": "gl_PerVertex",

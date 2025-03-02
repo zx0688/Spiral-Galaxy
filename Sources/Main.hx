@@ -1,8 +1,9 @@
+import kha.graphics4.TextureUnit;
 import kha.WindowOptions;
 import kha.WindowMode;
 import kha.Window;
 import utils.DynamicImageFactory;
-import engine.BatchRender;
+import engine.InstancedRender;
 import haxe.Json;
 import ui.UI;
 import kha.System;
@@ -30,15 +31,15 @@ class Main {
 	static var preloader: Preloader;
 	static var settings: Dynamic;
 	static var backbuffer: Image;
-	static var batchRender: BatchRender;
+	static var instancedRender: InstancedRender;
 	static var fps: Int = 0;
 	static var ui: UI;
 
 	public static function main() {
 		System.start({
 			title: "Spiral Galaxy",
-			width: 2560,
-			height: 1440,
+			width: 1000,
+			height: 1000,
 			window: {
 				mode: WindowMode.Fullscreen
 			}
@@ -54,11 +55,9 @@ class Main {
 
 		DynamicImageFactory.init();
 		var camera: Camera = new Camera();
-
 		space = new Scene(pipeline, settings, camera).init();
-		ui = new UI(space, settings);
-
-		batchRender = new BatchRender(pipeline, camera);
+		instancedRender = new InstancedRender(pipeline, camera);
+		ui = new UI(space, settings, instancedRender);
 
 		Scheduler.addTimeTask(update, 0, 1 / 30);
 		System.notifyOnFrames(render);
@@ -68,6 +67,8 @@ class Main {
 			Main.resize();
 		}
 		#end
+
+		update();
 	}
 
 	static function resize() {
@@ -75,7 +76,9 @@ class Main {
 	}
 
 	static function update() {
-		space.update(Scheduler.time());
+		var time = Scheduler.time();
+		space.update(time);
+		instancedRender.update(time);
 	}
 
 	static function render(frames: Array<Framebuffer>) {
@@ -85,9 +88,12 @@ class Main {
 		g4.clear(Color.Black);
 		g4.setPipeline(pipeline.state);
 
-		preloader.render(g4, batchRender);
-		space.render(g4, batchRender);
-		batchRender.render(g4);
+		// collect view data into batch
+		preloader.render(g4, instancedRender);
+		space.render(g4, instancedRender);
+
+		// draw
+		instancedRender.render(g4, null);
 		g4.end();
 
 		// ui
